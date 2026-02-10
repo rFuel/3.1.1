@@ -1,0 +1,79 @@
+$INSERT I_Prologue
+      PROMPT ""
+      OPEN "CSV" TO SOURCEIO ELSE STOP "Cannot open CSV file."
+      BOYS = "Sample Boys.csv"
+      GRLS = "Sample Girls.csv"
+      FAMS = "Sample Family.csv"
+      COYS = "Sample Companies.csv"
+      ADDR = "Sample Streets.csv"
+*
+      READ BOYS.LIST FROM SOURCEIO, BOYS ELSE STOP "No Boy names: ":BOYS
+      READ GRLS.LIST FROM SOURCEIO, GRLS ELSE STOP "No Girl names: ":GRLS
+      READ FAMS.LIST FROM SOURCEIO, FAMS ELSE STOP "No Boy names: ":FAMS
+      READ COYS.LIST FROM SOURCEIO, COYS ELSE STOP "No Company names: ":COYS
+      READ ADDR.LIST FROM SOURCEIO, ADDR ELSE STOP "No Address names: ":ADDR
+*
+      ERR=""
+      CALL SR.OPEN.CREATE (ERR, "BOYS", "DYNAMIC", BOYS.DATA)
+      IF ERR # "" THEN STOP "Issue creating BOYS file ":ERR
+*
+      CALL SR.OPEN.CREATE (ERR, "GIRLS", "DYNAMIC", GRLS.DATA)
+      IF ERR # "" THEN STOP "Issue creating GIRLS file ":ERR
+*
+      CALL SR.OPEN.CREATE (ERR, "FAMILY", "DYNAMIC", FAMS.DATA)
+      IF ERR # "" THEN STOP "Issue creating FAMILY file ":ERR
+*
+      CALL SR.OPEN.CREATE (ERR, "COMPANY", "DYNAMIC", COYS.DATA)
+      IF ERR # "" THEN STOP "Issue creating COMPANY file ":ERR
+*
+      CALL SR.OPEN.CREATE (ERR, "ADDRESS", "DYNAMIC", ADDR.DATA)
+      IF ERR # "" THEN STOP "Issue creating ADDRESS file ":ERR
+*
+      WORD.CHK = 0       ;* allow single words
+*
+      THIS.FILE = BOYS.DATA
+      THIS.LIST = BOYS.LIST
+      GOSUB LOAD..DATA
+      PRINT ID "R#5":" records loaded into BOYS"
+*
+      THIS.FILE = GRLS.DATA
+      THIS.LIST = GRLS.LIST
+      GOSUB LOAD..DATA
+      PRINT ID "R#5":" records loaded into GIRLS"
+*
+      THIS.FILE = FAMS.DATA
+      THIS.LIST = FAMS.LIST
+      GOSUB LOAD..DATA
+      PRINT ID "R#5":" records loaded into FAMILY"
+*
+      WORD.CHK = 1       ;* MUST have two words or more
+*
+      THIS.FILE = COYS.DATA
+      THIS.LIST = COYS.LIST
+      GOSUB LOAD..DATA
+      PRINT ID "R#5":" records loaded into COMPANY"
+*
+      THIS.FILE = ADDR.DATA
+      THIS.LIST = ADDR.LIST
+      GOSUB LOAD..DATA
+      PRINT ID "R#5":" records loaded into ADDRESS"
+*
+      PRINT "Sample data has been loaded."
+      STOP
+* ----------------------------------------------------------------------------------
+LOAD..DATA:
+* ----------------------------------------------------------------------------------
+      CLEARFILE THIS.FILE
+      EOI = DCOUNT(THIS.LIST, @FM)
+      ID = 0
+      FOR I = 1 TO EOI
+         NAME = THIS.LIST<I>
+         IF WORD.CHK AND COUNT(NAME, " ") = 0 THEN CONTINUE
+         IF TRIM(NAME)="" THEN CONTINUE
+         NAME = CONVERT(",", @VM, NAME)
+         ID += 1
+         WRITE NAME ON THIS.FILE, ID
+      NEXT I
+      RETURN
+*
+   END

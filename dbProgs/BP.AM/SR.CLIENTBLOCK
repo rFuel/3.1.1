@@ -1,0 +1,68 @@
+      SUBROUTINE SR.CLIENTBLOCK ( ERR, OLD, NEW )
+$INCLUDE I_Prologue
+      *
+      *  Synopsis:
+      *  07-10-20    a) CALLs must return newV, not use the record<a,m,s> !!!
+      *
+      * ----------------------------------------------------------------------
+      ERR         = ""
+      *
+      RABCLIENT = "RAB.CLIENT"      ;  DEVCLIENT = "DEV.CLIENT"
+      RABAML    = "RAB.CLIENT.AML"  ;  DEVAML    = "DEV.CLIENT.AML"
+      * ------------------------------------------------------------
+      OPEN RABCLIENT  TO RAB.CLIENT ELSE
+         ERR = RABCLIENT:" open failure"
+         GO END..PROG
+      END
+      OPEN RABAML    TO RAB.CLIENT.AML ELSE
+         ERR = RABAML:" open failure"
+         GO END..PROG
+      END
+      * ------------------------------------------------------------
+      OPEN DEVCLIENT  TO DEV.CLIENT ELSE
+         ERR = DEVCLIENT:" open failure"
+         GO END..PROG
+      END
+      OPEN DEVAML  TO DEV.CLIENT.AML ELSE
+         ERR = DEVAML:" open failure"
+         GO END..PROG
+      END
+      * ------------------------------------------------------------
+      READ OLDREC FROM RAB.CLIENT, OLD ELSE
+         ERR = OLD:" is not in ":RABCLIENT
+         GO END..PROG
+      END
+      READ OLDAML FROM RAB.CLIENT.AML, OLD ELSE
+         ERR = OLD:" is not in ":RABAML
+         GO END..PROG
+      END
+      NEWAML = OLDAML
+      NEWAML<2> = "aml-":RND(8)+1
+      WRITE NEWAML ON DEV.CLIENT.AML, NEW
+      SOME.NBR = RND(8)+1:RND(8)+1:RND(8)+1
+      NEWREC = OLDREC
+      NEWREC<1,1,1> = "lastName-":SOME.NBR
+      NEWREC<7,1,1> = "FirstName":SOME.NBR:" SecondName":SOME.NBR
+      NEWREC<72,1,1>= SOME.NBR:".email@mAiLserVer.cOm.au"
+      NEWREC<9,1,1> = STR(RND(8)+1, 4):STR(RND(8)+1, 3):STR(RND(8)+1, 3)
+      NEWREC<9,2,1> = STR(RND(8)+1, 4):STR(RND(8)+1, 3):STR(RND(8)+1, 3)
+      NEWREC<78,1,1>= STR(RND(8)+1, 4):STR(RND(8)+1, 3):STR(RND(8)+1, 3)
+      NEWREC<78,2,1>= STR(RND(8)+1, 4):STR(RND(8)+1, 3):STR(RND(8)+1, 3)
+      NEWREC<78,3,1>= STR(RND(8)+1, 4):STR(RND(8)+1, 3):STR(RND(8)+1, 3)
+      NEWREC<78,4,1>= STR(RND(8)+1, 4):STR(RND(8)+1, 3):STR(RND(8)+1, 3)
+      NEWREC<78,5,1>= STR(RND(8)+1, 4):STR(RND(8)+1, 3):STR(RND(8)+1, 3)
+      NEWREC<82,1,1>= STR(RND(8)+1, 4):STR(RND(8)+1, 3):STR(RND(8)+1, 3)
+      CRT "  Before ":NEWREC<2,1,1>:" ":NEWREC<3,1,1>
+      newV = ""; CALL SR.SCRUBSTRING(NEWREC<2,1,1>, newV)  ; NEWREC<2,1,1> = newV
+      newV = ""; CALL SR.SCRUBSTRING(NEWREC<3,1,1>, newV)  ; NEWREC<3,1,1> = newV
+      CRT "   After ":NEWREC<2,1,1>:" ":NEWREC<3,1,1>
+      newV = ""; CALL SR.SCRUBSTRING(NEWREC<2,2,1>, newV)  ; NEWREC<2,2,1> = newV
+      newV = ""; CALL SR.SCRUBSTRING(NEWREC<3,2,1>, newV)  ; NEWREC<3,2,1> = newV
+      newV = ""; CALL SR.SCRUBNUMBER(NEWREC<23,3,1>, newV) ; NEWREC<23,3,1> = newV
+      newV = ""; CALL SR.SCRUBNUMBER(NEWREC<23,5,1>, newV) ; NEWREC<23,5,1> = newV
+      WRITE NEWREC ON DEV.CLIENT, NEW
+      *
+END..PROG:
+      IF ERR # "" THEN CRT "SR.CLIENTBLOCK   ":ERR
+      RETURN
+   END

@@ -1,0 +1,24 @@
+      CALL SR.OPEN.CREATE(ERR, "POST.CODES", "DYNAMIC", PCODES)
+      IF ERR THEN PRINT "Open error on POST.CODES" ; STOP
+      OPEN "CSV" TO FILEIO ELSE STOP "Cannot open CSV"
+      READ REC FROM FILEIO, "QLD postcodes.txt" ELSE STOP
+      CLEARFILE PCODES
+      PRINT "Starting"
+      OUT = ""
+      LNE = ""
+      EOI = DCOUNT(REC, @FM)
+      FOR I = 1 TO EOI
+         VAR = REC<I>
+         IF VAR = "" THEN CONTINUE
+         IF NUM(VAR) THEN
+            IF OUT # "" THEN WRITE OUT ON PCODES, PCODE
+            PCODE = VAR
+            OUT = ""
+         END ELSE
+            OUT<1, -1> = VAR
+         END
+      NEXT I
+      IF OUT # "" THEN WRITE OUT ON PCODES, PCODE
+      PRINT "Done"
+      STOP
+   END

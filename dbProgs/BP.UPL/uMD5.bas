@@ -1,0 +1,7 @@
+      SUBROUTINE uMD5 (ANS, INREC)
+$INCLUDE I_Prologue
+      RVAL = DIGEST("MD5", INREC, 1, HASH)
+      HASH = DOWNCASE(OCONV(HASH, "MX0C"))
+      ANS = HASH
+      RETURN
+   END

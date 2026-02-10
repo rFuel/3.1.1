@@ -1,0 +1,29 @@
+      
+$INCLUDE I.SOCKET.COMMON
+$INCLUDE I.COMMON
+      IF NOT(ASSIGNED(DBT))   THEN EXECUTE "CLEAR.COMMON" CAPTURING JUNK
+      IF NOT(ASSIGNED(rfENV)) THEN EXECUTE "CLEAR.COMMON" CAPTURING JUNK
+      *
+      IF DBT   = 0 THEN EXECUTE "CLEAR.COMMON" CAPTURING JUNK
+      IF rfENV = 0 THEN EXECUTE "CLEAR.COMMON" CAPTURING JUNK
+      * ----------------------------------------------------------- *
+      IF DBT   = 0 OR DBT   = "" THEN STOP
+      IF rfENV = 0 OR rfENV = "" THEN STOP
+      * ----------------------------------------------------------- *
+      INSTANCE.ID = FIELD(rfENV, "*", 1)
+      ENV.TIER    = FIELD(rfENV, "*", 2)
+      APP         = FIELD(rfENV, "*", 3)
+      VERSION     = FIELD(rfENV, "*", 4)
+      CUSTOMER    = FIELD(rfENV, "*", 5)
+      *
+      TILDE       = CHAR(126)
+      LOG.KEY     = MEMORY.VARS(1) : @FM
+      CORRID      = MEMORY.VARS(2)
+      REPLY2      = MEMORY.VARS(3)
+      * ----------------------------------------------------------- *
+      * This is where I check authorisations and setup microservice *
+      * logging. Remember to use SR.OPEN.CREATE and SR.CLOSE.FILE   *
+      * ----------------------------------------------------------- *
+      LOCAL.FILES = " BP.UPL UPL.INSERTS uLOG RETURN.CODES uREQUESTS"
+      LOCAL.FILES:= " uRESPONSES sRESPONSES uCATALOG VOC "
+      *

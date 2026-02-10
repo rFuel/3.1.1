@@ -1,0 +1,16 @@
+      OPEN "TRANSACTION.RECON" TO IOFILE ELSE STOP
+      CNT = 0
+      SHOW = 100000
+      SELECT IOFILE
+      LOOP
+         READNEXT ID ELSE EXIT
+         CNT += 1
+         IF MOD(CNT, SHOW)=0 THEN CRT OCONV(CNT, "MD0,")
+         READ REC FROM IOFILE, ID ELSE CONTINUE
+         NID = EREPLACE(ID, "~", "*")
+         WRITE REC ON IOFILE, NID
+         DELETE IOFILE, ID
+      REPEAT
+      CRT "Done."
+      STOP
+   END

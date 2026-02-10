@@ -1,0 +1,20 @@
+      *
+      * ------------------------------------------------------
+      * Usage:   MAKE.LIST {list-name} {select statement}     
+      * ------------------------------------------------------
+      CMD = @SENTENCE
+      CONVERT " " TO @FM IN CMD
+      LOCATE("MAKE.LIST", CMD; POS) ELSE STOP "ERROR: cannot find MAKE.LIST in your command !"
+      FOR I = 1 TO POS
+         CMD = DELETE(CMD,1,0,0)
+      NEXT I
+      LIST.NAME = CMD<1>
+      CMD = DELETE(CMD,1,0,0)
+      CONVERT @FM TO " " IN CMD
+      SEL.CMD   = CMD
+      *
+      EXECUTE SEL.CMD RTNLIST ITEMS CAPTURING OUTPUT
+      EXECUTE "SAVE-LIST ":LIST.NAME PASSLIST ITEMS CAPTURING OUTPUT
+      *
+      STOP
+   END

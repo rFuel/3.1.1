@@ -1,0 +1,18 @@
+      OPEN "uDELTA.LOG" TO DLOG ELSE STOP
+      CMD = "SELECT uDELTA.LOG UNLIKE ...ulog"
+      CRT
+      CRT CMD
+      EXECUTE CMD
+      LOOP
+         READNEXT ID ELSE EXIT
+         NID = ""
+         FOR I = 1 TO 4
+            NID := FIELD(ID, ".", I):"."
+         NEXT I
+         NID := "ulog"
+         READ REC FROM DLOG, ID ELSE CONTINUE
+         WRITE REC ON DLOG, NID
+         DELETE DLOG, ID
+      REPEAT
+      STOP
+   END

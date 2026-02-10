@@ -1,0 +1,15 @@
+      PROMPT ""
+10*
+      CRT "Date in format mm-dd-yyyy"
+      DTE = FIELD(@SENTENCE, ' ', 2)
+      IF DTE = '' THEN
+         PRINT 'Date: ': ; INPUT DTE
+         IF DTE = '' THEN STOP
+      END
+      IF NUM(DTE) AND DTE # '' THEN
+         PRINT OCONV(DTE, 'D4')
+      END ELSE
+         PRINT ICONV(DTE, 'D4')
+      END
+      GO 10
+   END

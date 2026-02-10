@@ -1,0 +1,102 @@
+      * P100 - Example program to change name and phone number
+      * --------------------------------------------------------
+      PROMPT ""
+      OPEN "CUSTOMER" TO CUSTOMER.IO ELSE STOP "CUSTOMER missing"
+      * 
+      COMMAND = EREPLACE(@SENTENCE, " ", @FM)
+      IF COMMAND<2> = "" THEN xAPI.SW=@FALSE ELSE xAPI.SW=@TRUE
+      xNEXT = 1
+      * xNEXT is either acquire by position OR by reference - NOT MIXED
+      *
+      SCREEN = @(0,0):@(-1):SPACE(20):"Example Program":@(20,1)
+      SCREEN:= "===============":@(10,3):"Customer"
+      SCREEN:= @(10,4):"Name":@(10,5):"Givens":@(10,6):"Phone"
+TOP:
+      IF NOT(xAPI.SW) THEN PRINT SCREEN
+      *
+10    *
+      *
+      IF NOT(xAPI.SW) THEN 
+         PRINT @(20,3):SPACE(20):@(20,3):
+         INPUT CUST 
+      END ELSE 
+         ERR = ""
+         CALL SR.APIDATA(ERR, xNEXT, COMMAND, CUST)
+      END
+      IF CUST = "" THEN STOP
+      READ CUST.REC FROM CUSTOMER.IO, CUST ELSE
+         ERRMSG = "Invalid Customer ID. Try again "
+         IF NOT(xAPI.SW) THEN 
+            PRINT @(0,22):@(-4):ERRMSG:
+            INPUT ACK
+            GOTO 10
+         END ELSE
+            PRINT ERRMSG
+            RELEASE
+            STOP
+         END
+      END
+      IF NOT(xAPI.SW) THEN PRINT @(0,22):@(-4):
+      NAME  = CUST.REC<1>
+      GIVEN = CUST.REC<7>
+      PHONE = CUST.REC<9,1>
+      *
+      GOSUB SHOW..FIELDS
+      *
+20    *
+      *
+      IF NOT(xAPI.SW) THEN 
+         PRINT @(20,4):NAME "L#40":@(20,4):
+         INPUT inNAME
+      END ELSE 
+         ERR = ""
+         CALL SR.APIDATA(ERR, xNEXT, COMMAND, inNAME)
+      END
+      IF inNAME = "" THEN inNAME = NAME
+      *
+30    *
+      *
+      IF NOT(xAPI.SW) THEN 
+         PRINT @(20,5):GIVEN "L#40":@(20,5):
+         INPUT inGIVEN
+      END ELSE 
+         ERR = ""
+         CALL SR.APIDATA(ERR, xNEXT, COMMAND, inGIVEN)
+      END
+      IF inGIVEN = "" THEN inGIVEN = GIVEN
+      *
+40    *
+      *
+      IF NOT(xAPI.SW) THEN
+         PRINT @(20,6):PHONE "L#40":@(20,6):
+         INPUT inPHONE
+      END ELSE 
+         ERR = ""
+         CALL SR.APIDATA(ERR, xNEXT, COMMAND, inPHONE)
+      END
+      IF inPHONE = "" THEN inPHONE = PHONE
+      *
+100   *
+      *
+      IF NOT(xAPI.SW) THEN
+         PRINT @(0,22):@(-4):"Okay to file (Y/N)":
+         INPUT ANS
+      END ELSE
+         ANS = "Y"
+      END
+      IF ANS = "Y" THEN
+         CUST.REC<1> = inNAME
+         CUST.REC<7> = inGIVEN
+         CUST.REC<9,1> = inPHONE
+         WRITE CUST.REC ON CUSTOMER.IO, CUST
+      END
+      GOTO TOP
+      * ==================================================================
+SHOW..FIELDS:
+      FIELDS = @(20,4):NAME "L#40":@(20,5):GIVEN "L#40":@(20,6):PHONE "L#40"
+      IF NOT(xAPI.SW) THEN PRINT FIELDS:
+      RETURN
+      * ==================================================================
+      STOP
+   END
+

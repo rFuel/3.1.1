@@ -1,0 +1,7 @@
+      ARR = "@RFUEL@ACCOUNTS*@RFUEL@TRAN*@RFUEL@MYFILE"
+      ARR = EREPLACE(ARR, "*", @FM)
+      LOCATE("@RFUEL@MYFILE", ARR; POS) THEN
+         CRT "found in ":POS
+      END
+      STOP
+   END

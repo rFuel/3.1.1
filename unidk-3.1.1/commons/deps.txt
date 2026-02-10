@@ -1,0 +1,38 @@
+com.unilibre:commons:jar:1.0.0-SNAPSHOT
++- com.northgateis:reality:jar:1.0:compile
++- com.microsoft.sqlserver:mssql-jdbc:jar:12.8.1.jre11:compile
++- org.mariadb.jdbc:mariadb-java-client:jar:2.4.0:compile
++- com.oracle:ojdbc8:jar:19.3:compile
++- com.unilibre:MQConnector:jar:1.0.0-SNAPSHOT:compile
++- com.unilibre:cipher:jar:1.0.0-SNAPSHOT:compile
++- com.unilibre:asjava:jar:5.2.1:compile
++- commons-configuration:commons-configuration:jar:1.6:compile
+|  +- commons-collections:commons-collections:jar:3.2.1:compile
+|  +- commons-lang:commons-lang:jar:2.4:compile
+|  +- commons-logging:commons-logging:jar:1.1.1:compile
+|  +- commons-digester:commons-digester:jar:1.8:compile
+|  |  \- commons-beanutils:commons-beanutils:jar:1.7.0:compile
+|  \- commons-beanutils:commons-beanutils-core:jar:1.8.0:compile
++- org.apache.activemq:activemq-all:jar:5.15.9:compile
++- commons-dbcp:commons-dbcp:jar:1.4:compile
+|  \- commons-pool:commons-pool:jar:1.5.4:compile
++- org.apache.commons:commons-dbcp2:jar:2.1:compile
+|  \- org.apache.commons:commons-pool2:jar:2.3:compile
++- antlr:antlr:jar:2.7.7:compile
++- org.apache.activemq:artemis-jms-client-all:jar:2.32.0:compile
++- org.springframework.security:spring-security-core:jar:5.4.11:compile
+|  +- org.springframework:spring-aop:jar:5.2.19.RELEASE:compile
+|  +- org.springframework:spring-beans:jar:5.2.19.RELEASE:compile
+|  +- org.springframework:spring-context:jar:5.2.19.RELEASE:compile
+|  +- org.springframework:spring-core:jar:5.2.19.RELEASE:compile
+|  |  \- org.springframework:spring-jcl:jar:5.2.19.RELEASE:compile
+|  \- org.springframework:spring-expression:jar:5.2.19.RELEASE:compile
++- org.json:json:jar:20240205:compile
++- com.google.guava:guava:jar:32.1.1-jre:compile
+|  +- com.google.guava:failureaccess:jar:1.0.1:compile
+|  +- com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava:compile
+|  +- com.google.code.findbugs:jsr305:jar:3.0.2:compile
+|  +- org.checkerframework:checker-qual:jar:3.33.0:compile
+|  +- com.google.errorprone:error_prone_annotations:jar:2.18.0:compile
+|  \- com.google.j2objc:j2objc-annotations:jar:2.8:compile
+\- joda-time:joda-time:jar:2.10.10:compile

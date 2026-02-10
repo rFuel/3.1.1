@@ -1,0 +1,28 @@
+
+
+SANITISE:
+   Files:   held in BP.UPL SANITISE-FILE
+   
+   Csv's:   held in CSV as FileName.csv
+            #,a,m,s,OBF            
+            where OBF is:
+               TEXT  - SCRUBSTRING
+               DATE  - add a random number of days to dates
+               MONEY - SCRUBNUMBER
+               NARR  - SCRUBNARRATIVE
+            
+  Run In:   The account you want to create the data in
+               - Customer to create the empty account
+               - setup BP.UPL & OBJ.UPL in new account
+            
+ Process:   
+            Records keep the same primary ID
+            for each file
+               get the file's csv 
+               clear the LOCAL file
+               set a q-pointer to data account 
+               select q-pointer file
+               readnext ID
+               read record from q-pointer
+               scrub record
+               write record to LOCAL file.

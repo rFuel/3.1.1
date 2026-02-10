@@ -1,0 +1,19 @@
+      SUBROUTINE SR.TEST1 (RTN.MESSAGE, INFILE, ID, INDATA, ATR, MV, SV)
+      OPEN INFILE TO FILEIO ELSE
+         RTN.MESSAGE = INFILE:" is not a valid database file"
+         GO END..SUBR
+      END
+      READU REC FROM FILEIO, ID LOCKED
+         RTN.MESSAGE = "Record ":ID:" in file ":INFILE:" is currently locked."
+      END THEN
+         REC<ATR,MV,SV> = INDATA
+         WRITE REC ON FILEIO, ID
+      END ELSE
+         RTN.MESSAGE = "Record ":ID:" in file ":INFILE:" does not exist."
+      END
+*
+END..SUBR:
+      RELEASE
+      CLOSE
+      RETURN
+   END

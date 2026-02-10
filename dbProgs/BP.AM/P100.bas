@@ -1,0 +1,66 @@
+      * P100 - Example program to change name and phone number
+      * --------------------------------------------------------
+      PROMPT ""
+      OPEN "CUSTOMER" TO CUSTOMER.IO ELSE STOP "CUSTOMER missing"
+      ESC = CHAR(027)
+      *
+      SCREEN = @(0,0):@(-1):SPACE(20):"Example Program":@(20,1)
+      SCREEN:= "===============":@(10,3):"Customer"
+      SCREEN:= @(10,4):"Name":@(10,5):"Givens":@(10,6):"Phone"
+TOP:
+      PRINT SCREEN
+      *
+10    *
+      *
+      PRINT @(20,3):SPACE(20):@(20,3):
+      INPUT CUST
+      IF CUST = "" OR CUST = ESC THEN STOP
+      READ CUST.REC FROM CUSTOMER.IO, CUST ELSE
+         PRINT @(0,22):@(-4):"Invalid Customer ID. Try again":
+         GOTO 10
+      END
+      PRINT @(0,22):@(-4):
+      NAME  = CUST.REC<1>
+      GIVEN = CUST.REC<7>
+      PHONE = CUST.REC<9,1>
+      *
+      GOSUB SHOW..FIELDS
+      *
+20    *
+      *
+      PRINT @(20,4):NAME "L#40":@(20,4):
+      INPUT inNAME
+      IF inNAME = "" THEN inNAME = NAME
+      *
+30    *
+      *
+      PRINT @(20,5):GIVEN "L#40":@(20,5):
+      INPUT inGIVEN
+      IF inGIVEN = "" THEN inGIVEN = GIVEN
+      *
+40    *
+      *
+      PRINT @(20,6):PHONE "L#40":@(20,6):
+      INPUT inPHONE
+      IF inPHONE = "" THEN inPHONE = PHONE
+      *
+100   *
+      *
+      PRINT @(0,22):@(-4):"Okay to file (Y/N)":
+      INPUT ANS
+      IF ANS = "Y" THEN
+         CUST.REC<1> = inNAME
+         CUST.REC<7> = inGIVEN
+         CUST.REC<9,1> = inPHONE
+         WRITE CUST.REC ON CUSTOMER.IO, CUST
+      END
+      GOTO TOP
+      * ==================================================================
+SHOW..FIELDS:
+      FIELDS = @(20,4):NAME "L#40":@(20,5):GIVEN "L#40":@(20,6):PHONE "L#40"
+      PRINT FIELDS:
+      RETURN
+      * ==================================================================
+      STOP
+   END
+

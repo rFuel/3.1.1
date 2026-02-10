@@ -1,0 +1,46 @@
+      PROMPT ""
+      CLS = @(-1)
+10:*
+      CRT CLS:
+      CRT "Manually load test data into a file"
+      CRT "-----------------------------------"
+      CRT " "
+      CRT "File ": ; INPUT F
+      IF F="" THEN STOP
+      IF F="Q" THEN STOP
+      OPEN F TO IOFILE ELSE CRT "No such file" ; GO 10
+*
+20:*
+      CRT "Item ": ; INPUT ID
+      IF ID="" THEN GO 10
+      IF ID="Q" THEN GO 10
+*
+      READ RECORD FROM IOFILE, ID ELSE
+         CRT " . . . . . this will be a new record!"
+         GO 20
+      END
+*
+100:*
+      CRT "A,M,S ": ; INPUT AMS
+      AMS := ",,,"
+      A = TRIM(FIELD(AMS, ",", 1))
+      M = TRIM(FIELD(AMS, ",", 2))
+      S = TRIM(FIELD(AMS, ",", 3))
+*
+      IF NOT(NUM(A)) OR A = "" THEN GO 999
+      IF NOT(NUM(M)) OR M = "" THEN M = 1
+      IF NOT(NUM(S)) OR S = "" THEN S = 1
+*
+      CRT "Current value ":RECORD<A,M,S>
+      CRT "    New value ": ; INPUT V
+      IF V = "" THEN V = RECORD<A,M,S>
+      IF V="." THEN V = ""
+      RECORD<A,M,S> = V
+      WRITE RECORD ON IOFILE, ID
+      GO 100
+*
+999:*
+      CRT "done."
+      CRT ; CRT ; CRT
+      GO 20
+   END

@@ -1,0 +1,15 @@
+      EXE = 'SSELECT VOC WITH F1 LIKE F...'
+      EXECUTE EXE CAPTURING JUNK
+      FCNT = 0
+      CRT "..... File" "R#35":"  ":"Records" "R#10"
+      LOOP
+         READNEXT FILE ELSE EXIT
+         EXE = "COUNT ":FILE
+         EXECUTE EXE CAPTURING JUNK
+         RCNT = FIELD(JUNK<2>, " ", 1)
+         CRT FILE "R#35":"  ":OCONV(RCNT, "MD0,") "R#10"
+         FCNT += 1
+      REPEAT
+      CRT
+      CRT "Done. Checked ":FCNT:" local files."
+   END

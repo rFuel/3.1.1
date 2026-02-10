@@ -1,0 +1,141 @@
+$INSERT I_Prologue
+      PROMPT ""
+      ERR=""
+      CALL SR.OPEN.CREATE (ERR, "ACCOUNTS", "DYNAMIC", ACCOUNTS.DATA)
+      IF ERR # "" THEN STOP "Issue with ACCOUNTS file ":ERR
+      CALL SR.OPEN.CREATE (ERR, "CLIENT", "DYNAMIC", CLIENT.DATA)
+      IF ERR # "" THEN STOP "Issue with CLIENT file ":ERR
+      CALL SR.OPEN.CREATE (ERR, "COMPANY", "DYNAMIC", COMPANY.DATA)
+      IF ERR # "" THEN STOP "Issue with COMPANY file ":ERR
+      CALL SR.FILE.OPEN (ERR, "UPL.CONTROL", UPL.CONTROL)
+      IF ERR # "" THEN STOP "Issue with UPL.CONTROL file ":ERR
+      PRINT "Starting"
+      *
+      READ CONTROL.REC FROM UPL.CONTROL, "DBLOAD.PARAMS" ELSE CONTROL.REC = ""
+      MAX.ACCOUNTS = FIELD(CONTROL.REC<2>, " ", 1)+0
+      IF MAX.ACCOUNTS = 0 THEN MAX.ACCOUNTS = 2
+      *
+      CLEARFILE ACCOUNTS.DATA
+      SELECT CLIENT.DATA
+      WCNT = 0
+      LOOP
+         READNEXT MEMBER.ID ELSE EXIT
+         READ CREC FROM CLIENT.DATA, MEMBER.ID ELSE
+            PRINT "Lost CLIENT ":MEMBER.ID
+            STOP
+         END
+         AREC = ""
+         JOINED = CREC<18,1,1> + 0
+         *
+         NBR.ACCOUNTS = RND(30) + 1
+         if NBR.ACCOUNTS > MAX.ACCOUNTS THEN NBR.ACCOUNTS = MAX.ACCOUNTS
+         FOR XX = 1 TO NBR.ACCOUNTS
+            AC.NBR = RND(99) + 1
+            CHK = RND(3) + 1
+            IF CHK=1 THEN AC.TYPE = "S"
+            IF CHK=2 THEN AC.TYPE = "I"
+            IF CHK=3 THEN AC.TYPE = "L"
+            ACCOUNT.ID = MEMBER.ID:AC.TYPE:AC.NBR
+            *
+            CENTS = RND(91) + 1
+            OPENED = JOINED + RND(250)
+            BALANCE = 0
+            FIRE = ""
+            FLOOD = ""
+            LIFE = ""
+            MV = ""
+            LOAN = ""
+            CRED = ""
+            REPAY= ""
+            FREQ = ""
+            I.RATE = ""
+            P.RATE = ""
+            C.RATE = ""
+            M.RATE = ""
+            RENEW.DATE = ""
+            RENEW.FLAG = ""
+            BROKER = ""
+            BEGIN CASE
+               CASE AC.TYPE = "S"
+                  BALANCE = RND(2000) + 1
+                  I.RATE = "1.75"
+               CASE AC.TYPE = "I"
+                  BALANCE = RND(17) * 1000
+                  I.RATE = "2.25"
+                  RENEW.DATE = OPENED + (RND(2) * 365)
+                  RENEW.FLAG = "Y"
+               CASE AC.TYPE = "L"
+                  BEGIN CASE
+                     CASE AC.NBR < 33    ; * Personal Loans
+                        BALANCE = RND(5000) + 1
+                        LOAN = BALANCE * 2
+                        P.RATE = "3.65"
+                        REPAY = INT(LOAN / (12 * (RND(5)+1)))
+                     CASE AC.NBR < 38    ; * Business Loans
+                        BALANCE = ((RND(10)+1) * 1000)
+                        LOAN = BALANCE * 2
+                        I.RATE = "3.35"
+                        BROKER = "17"
+                        REPAY = INT(LOAN / (12 * (RND(5)+1)))
+                     CASE AC.NBR < 50    ; * Credit Cards
+                        CRED = ((RND(5)+1) * 1000)
+                        CENTS = "00"
+                        C.RATE = "9.50"
+                        BALANCE= CRED / (RND(10)+1)
+                        REPAY = INT(LOAN / 12)
+                     CASE AC.NBR < 70    ; * Motor Vehicle Loans
+                        BALANCE = RND(50000) + 1
+                        LOAN = BALANCE * 2
+                        REPAY = INT(LOAN / (12 * (RND(5)+1)))
+                        P.RATE = "9.50"
+                        BROKER = "77"
+                        MV=""
+                        LOOP WHILE MV = "" DO
+                           KEY = RND(3000)
+                           READ COY FROM COMPANY.DATA, KEY THEN MV = KEY
+                        REPEAT
+                     CASE 1              ; * Home Loans
+                        LOAN = (RND(4)+1) * 250000
+                        REPAY = INT(LOAN / (12 * (RND(30)+1)))
+                        BALANCE = LOAN / (RND(13)+1)
+                        FIRE=""
+                        LOOP WHILE FIRE = "" DO
+                           KEY = RND(3000)
+                           READ COY FROM COMPANY.DATA, KEY THEN FIRE = KEY
+                        REPEAT
+                        FLOOD = FIRE
+                        LIFE = FIRE
+                        M.RATE = "3.96"
+                        BROKER = "37"
+                  END CASE
+            END CASE
+            AREC<1,1,1> = OPENED
+            AREC<2,1,1> = INT(BALANCE:CENTS)
+            AREC<2,3,1> = ICONV("31 JUN 2020", "D4")
+            AREC<3,2,1> = FIRE
+            AREC<3,3,1> = FLOOD
+            AREC<3,4,1> = LIFE
+            AREC<3,5,1> = MV
+            AREC<7,1,1> = INT(LOAN:CENTS)
+            AREC<8,1,1> = INT(CRED:CENTS)
+            AREC<8,2,1> = INT((CRED * (RND(2)+1)):CENTS)
+            AREC<11,1,1> = INT(REPAY:CENTS)
+            AREC<14,3,1> = "M"
+            AREC<22,1,1> = I.RATE
+            AREC<28,1,1> = M.RATE
+            AREC<28,2,1> = P.RATE
+            AREC<28,3,1> = C.RATE
+            AREC<28,4,1> = RENEW.DATE
+            AREC<28,5,1> = RENEW.FLAG
+            AREC<36,5,1> = BROKER
+            WRITE AREC ON ACCOUNTS.DATA, ACCOUNT.ID
+            CREC<40, -1> = AC.TYPE:AC.NBR
+            WCNT += 1
+            IF INT(WCNT/1000) = (WCNT/1000) THEN PRINT WCNT
+            SLEEP 1
+         NEXT XX
+         WRITE CREC ON CLIENT.DATA, MEMBER.ID
+      REPEAT
+      PRINT "Done. Created ":WCNT:" Account records"
+      STOP
+   END

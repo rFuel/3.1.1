@@ -1,0 +1,29 @@
+      PROMPT ""
+      FLIST = ""
+*
+10:*
+      CRT "String to find ": ; INPUT STR
+      IF STR = "" THEN STOP
+      IF FLIST = "" THEN
+         EXE = "SSELECT VOC WITH F1 LIKE F..."
+         EXECUTE EXE CAPTURING JUNK
+         LOOP
+            READNEXT ID ELSE EXIT
+            IF ID[1,1] = "&" THEN CONTINUE
+            FLIST<-1> = ID
+          REPEAT
+       END
+       EOI = DCOUNT(FLIST, @FM)
+       FOR I = 1 TO EOI
+          REMOVE ID FROM FLIST SETTING JUNK
+          EXE = "SEARCH ":ID
+          DATA STR,""
+          EXECUTE EXE CAPTURING JUNK
+          LOOP
+             READNEXT ITEM ELSE EXIT
+             CRT ID:"  ":ITEM
+          REPEAT
+       NEXT
+       CRT "Done."
+       STOP
+      END

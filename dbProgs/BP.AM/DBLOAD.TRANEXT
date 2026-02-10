@@ -1,0 +1,71 @@
+      PROMPT ""
+      ERR=""
+      OPEN "ACCOUNT"     TO ACCOUNTS.DATA ELSE STOP
+****  OPEN "TRAN.EXT"    TO TRANEXT.DATA  ELSE STOP
+      OPEN "MYFILE"    TO TRANEXT.DATA  ELSE STOP
+      OPEN "UPL.CONTROL" TO UPL.CONTROL   ELSE STOP
+      *
+      CMD = EREPLACE(@SENTENCE, " ", @FM)
+      IF UPCASE(CMD<DCOUNT(CMD, @FM)>) = "APPEND" THEN APPEND=1 ELSE APPEND=0
+      PRINT "Starting":
+      IF APPEND THEN PRINT " in APPEND mode" ELSE PRINT
+      *
+      *  NOT(APPEND) = create trans for the first time
+      *  APEND       = add one new tran per record.
+      *
+      IF NOT(APPEND) THEN 
+         READ CONTROL.REC FROM UPL.CONTROL, "DBLOAD.PARAMS" ELSE CONTROL.REC = ""
+         MAX.TRANS = FIELD(CONTROL.REC<3>, " ", 1)+0
+         IF MAX.TRANS = 0 THEN MAX.TRANS = 5
+         CLEARFILE TRANEXT.DATA
+         SELECT ACCOUNTS.DATA
+      END ELSE
+         MAX.TRANS = 1
+         SELECT TRANEXT.DATA
+      END
+      LOOP
+         READNEXT ID ELSE EXIT
+         IF NOT(APPEND) THEN
+            TNUM = 1
+            TREC = ""
+         END ELSE
+            READ TREC FROM TRANEXT.DATA, ID ELSE CONTINUE
+            TNUM = TREC<DCOUNT(TREC, @FM), 2,6> + 1      ;* next tran number
+         END
+         *
+         IF NOT(APPEND) THEN
+            FOR EXTN = 1 TO 12
+               GOSUB BUILD..TRANS
+               TREC<-1> = LINE
+               WRITE TREC ON TRANEXT.DATA, ID:"/":EXTN
+***************CRT*ID:"/":EXTN
+            NEXT EXTN
+         END ELSE
+            GOSUB BUILD..TRANS
+            TREC<-1> = LINE
+            WRITE TREC ON TRANEXT.DATA, ID
+************CRT*ID
+         END
+      REPEAT
+      CRT "Done."
+      STOP
+      *
+BUILD..TRANS:
+      LINE = ""
+      FOR I = 1 TO MAX.TRANS
+         LINE<1,1,1> = RND(95)+1       ;* trancode
+         LINE<1,2,1> = DATE()          ;* process date
+         LINE<1,2,2> = DATE()          ;* effective date
+         LINE<1,2,6> = TNUM            ;* tran number
+         IF LINE<1,1,1> < 39 THEN
+            LINE<1,2,9> = DATE()-1     ;* receipt date
+         END
+         LINE<1,3,1> = RND(475):RND(9):RND(9)   ;* tran amount
+         LINE<1,4,1> = "This is tran number: ":LINE<1,2,6>
+         LINE<1,4,6> = RND(90)+1       ;* tran type
+         LINE<1,9,1> = RND(3)+1        ;* status code
+         LINE<1,12,12> = "AU"
+         TNUM += 1
+      NEXT I
+      RETURN
+   END

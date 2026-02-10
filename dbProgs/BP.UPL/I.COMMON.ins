@@ -1,0 +1,20 @@
+COMMON /@@/ FNAMES, FHANDLES(1000), MEMORY.VARS(200), DBT, UPL.LOGGING, INF.LOGGING, LAST.USED, rfENV
+*
+#DEFINE
+      * -----------------------------------------
+      * On any ONE U2 host, account names are unique
+      * unless they live in different directories.
+      * E.g.  /u2/RFUEL and /u3/RFUEL
+      * To resolve this, uDO does these things:
+      *     var1 = "SH -c'hostname'"    - appsvr01.company.com
+      *     var2 = 'SH -c"pwd -P"'      - /u2/RFUEL
+      *     IAM  = var1var2             - appsvr01.company.com/u2/RFUEL
+      *     then                        - appsvr01_company_com_u2_RFUEL
+      *     then keeps only the last 31 characters.
+      * This is used to ereplace @@
+      * WARNING: UV only references 31 characters in named commons
+      * So, when using "@@_my_test or something like that,
+      * remeber to test the length of the resultant variable.
+      * -----------------------------------------
+      RFUEL.NC = "@@"
+      * -----------------------------------------

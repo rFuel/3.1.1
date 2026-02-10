@@ -1,0 +1,20 @@
+      
+$INCLUDE I.SOCKET.COMMON
+$INCLUDE I.COMMON
+      TILDE = CHAR(126)
+$IFDEF isRT
+      IF UNASSIGNED(DBT) THEN EXECUTE "CLEAR.COMMON" CAPTURING JUNK
+$ELSE
+      IF NOT(ASSIGNED(DBT)) THEN EXECUTE "CLEAR.COMMON" CAPTURING JUNK
+$ENDIF
+      IF DBT = 0  THEN EXECUTE "CLEAR.COMMON" CAPTURING JUNK
+      LOG.KEY    = MEMORY.VARS(1) : @FM
+      CORRID     = MEMORY.VARS(2)
+      REPLY2     = MEMORY.VARS(3)
+      * ----------------------------------------------------------- *
+      * This is where I check authorisations and setup microservice *
+      * logging. Remember to use SR.OPEN.CREATE and SR.CLOSE.FILE   *
+      * ----------------------------------------------------------- *
+      LOCAL.FILES = " BP.UPL UPL.INSERTS uLOG RETURN.CODES uREQUESTS"
+      LOCAL.FILES:= " uRESPONSES sRESPONSES uCATALOG VOC "
+      

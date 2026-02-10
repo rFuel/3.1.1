@@ -1,0 +1,222 @@
+* Change Log -----------------------------------------------------------------*
+* Andy MacDonald     12/04/2024     Initial Coding                            *
+*                                   Synopsis:                                 *
+*                                   Loop through TEST.FILE, process "S" IDs   *
+*                                      *  Replace ALL colons with hyphens     *
+*                                      *  Update into NEW.TEST.FILE           *
+*                                      *  Log the update action.              *
+*                                   NB: Restart and RE-RUN capable !          *
+* ----------------------------------------------------------------------------*
+      PROG     = "EXAMPLE"
+      SRC.FILE = "TEST.FILE"                    ;* assume Type 18 / 30
+      TGT.FILE = "NEW.TEST.FILE"                ;* assume Type 18 / 30
+      LOG.FILE = "RUN.LOGS"                     ;* Type 1 or 19 file
+      ID.STR   = "S"
+      HAS.STR  = "ABC"
+      SPEC     = "SPEC"
+      SPLX     = LEN(SPEC)+1
+      COLON    = ":"
+      HYPHEN   = "-"
+      *-----------------------------------------------------------------------*
+      *                       Initialise run                                  *
+      *-----------------------------------------------------------------------*
+      PRINT @(-1):"Move specific items from ":SRC.FILE:" to ":TGT.FILE
+      *
+      OPEN LOG.FILE TO TEMP THEN
+         READ CHK FROM TEMP, HAS.STR ELSE
+            WRITE "" ON TEMP, HAS.STR ON ERROR 
+               CRT "Cannot create ":HAS.STR:" on ":LOG.FILE:" - check permissions."
+               CLOSE TEMP
+               STOP
+            END
+         END
+         OPENSEQ LOG.FILE, HAS.STR TO LOG.IO ELSE
+            CRT "OPENSEQ of ":LOG.FILE:" , ":HAS.STR:" has failed: STATUS(":STATUS():")"
+            CLOSE TEMP
+            STOP
+         END
+      END ELSE
+         CRT "Cannot open ":LOG.FILE
+         STOP
+      END
+      TEMP = ""
+      *
+      GOSUB GET..NOW
+      LOG.LINE = NOW:"Run commencing --------------------------------------."
+      GOSUB LOGGER                              ;* should call a std routine.
+      LOG.LINE = ""                             ;* redundant but SAFE
+      *
+      IN.FILE = SRC.FILE   ; GOSUB OPEN..FILE   ; SOURCE = OUTFILE   ; IF NOT(F.OPEN) THEN STOP
+      IN.FILE = TGT.FILE   ; GOSUB OPEN..FILE   ; TARGET = OUTFILE   ; IF NOT(F.OPEN) THEN STOP
+      IF.FILE = ""         ; OUTFILE = ""
+      *
+      *-----------------------------------------------------------------------*
+      *              Process until end-of-file [SRC.FILE]                     *
+      *-----------------------------------------------------------------------*
+      *
+      SET TRANSACTION ISOLATION LEVEL NO.ISOLATION
+      *-----------------------------------------------------------------------*
+      *  Discuss and test the ISOLATION LEVEL                                 *
+      *-----------------------------------------------------------------------*
+      *
+      CNT = 0
+      PCNT= 0
+      SELECT SOURCE
+      LOOP
+         READNEXT ID ELSE EXIT
+         CNT += 1
+         CHK = CNT/1000
+         I.CNT = INT(CHK)
+         IF I.CNT = CHK THEN
+            GOSUB GET..NOW
+            CRT NOW:OCONV(CNT, "MD0,") "R#10":" records checked. ":PCNT "R#4":" records changed."
+         END
+         READ REC FROM SOURCE, ID ELSE CONTINUE
+         *
+         *-----------------------------------------------------------------*
+         *
+         IF NOT(INDEX(ID, ID.STR, 1)) THEN 
+            WANTED = 0
+         END ELSE
+            IDX = INDEX(REC<3,2>, HAS.STR, 1)
+            WANTED = IDX
+         END
+         IF NOT(WANTED) THEN CONTINUE
+         *
+         TRANSACTION START ELSE
+            GOSUB GET..NOW
+            LOG.LINE = NOW:" transaction start failed on ID ":ID
+            GOSUB LOGGER
+            CONTINUE
+         END
+         *-----------------------------------------------------------------*
+         * TRANSACTION in-scope:                                           *
+         *   Must have record locks inside the transaction for :-          *
+         *     1  SOURCE, ID     original record                           *
+         *     2  TARGET, ID     updated  record                           *
+         *-----------------------------------------------------------------*
+         READU REC FROM SOURCE, ID LOCKED
+            * getting processed elsewhere
+            TRANSACTION ABORT
+            RELEASE  SOURCE, ID
+            CONTINUE
+         END ELSE
+            * has been processed by a concurrent run
+            TRANSACTION ABORT
+            RELEASE  SOURCE, ID
+            CONTINUE
+         END
+         EOS = DCOUNT(REC<3,2>, @SM)
+         WANTED = 0
+         FOR SV = 1 TO EOS
+            IF REC<3,2, SV> = HAS.STR THEN 
+               WANTED = 1 
+               EXIT
+            END
+         NEXT SV
+         IF NOT(WANTED) THEN 
+            * the string is part of a longer string - ignore(?)
+            TRANSACTION ABORT
+            RELEASE  SOURCE, ID
+            CONTINUE
+         END
+         *
+         REC = EREPLACE(REC, COLON, HYPHEN)
+         READU LOCK.ME FROM TARGET, ID LOCKED
+            * another process is updating it
+            TRANSACTION ABORT
+            RELEASE  SOURCE, ID
+            RELEASE  TARGET, ID                 ;* redundant but SAFE
+            CONTINUE
+         END ELSE
+            * the record does not exist yet - do nothing in the ELSE
+            NULL
+         END
+         WRITE REC ON TARGET, ID
+         DELETE SOURCE, ID
+         RELEASE SOURCE, ID                     ;* redundant but SAFE
+         RELEASE TARGET, ID                     ;* redundant but SAFE
+         PCNT += 1
+         TRANSACTION COMMIT THEN
+            TAG = STR(" ", SPLX)
+            IF (INDEX(REC, SPEC, 1)) THEN TAG = SPEC:" "
+            GOSUB GET..NOW
+            LOG.LINE = NOW:TAG:ID:" in SV ":SV
+            CRT LOG.LINE
+            GOSUB LOGGER
+         END ELSE
+            TRANSACTION ABORT
+            RELEASE  SOURCE, ID                 ;* redundant but SAFE
+            RELEASE  TARGET, ID                 ;* redundant but SAFE
+            GOSUB GET..NOW
+            LOG.LINE = NOW:ID:" Commit Transaction failed - status(":STATUS():")"
+            CRT LOG.LINE
+            GOSUB LOGGER
+         END
+         *
+      REPEAT
+      *-----------------------------------------------------------------------*
+      *                             Finalise                                  *
+      *-----------------------------------------------------------------------*
+      GOSUB GET..NOW
+      LOG.LINE = NOW:OCONV(CNT, "MD0,") "R#10":" records checked. ":PCNT "R#4":" records changed."
+      CRT LOG.LINE
+      GOSUB LOGGER
+      LOG.LINE = NOW:"Run completed ---------------------------------------"
+      CRT LOG.LINE
+      GOSUB LOGGER
+      RELEASE SOURCE                            ;* redundant but SAFE
+      RELEASE TARGET                            ;* redundant but SAFE
+      CLOSE SOURCE
+      CLOSE TARGET
+      STOP
+      *
+      *-----------------------------------------------------------------------*
+      *                             Subroutines                               *
+      *-----------------------------------------------------------------------*
+      *
+OPEN..FILE:
+      F.OPEN = 0
+      OPEN IN.FILE TO OUTFILE THEN
+         LOG.LINE = NOW:IN.FILE:" opened successfully"
+         GOSUB LOGGER
+         F.OPEN = 1
+      END ELSE
+         LOG.LINE = NOW:IN.FILE:" failed to open - status(":STATUS():")"
+         GOSUB LOGGER
+      END
+      RETURN
+      *
+      *-----------------------------------------------------------------------*
+      *
+GET..NOW:
+      NOW = OCONV(DATE(), "D4-"):" ":OCONV(TIME(), "MTS"):" "
+      RETURN
+      *
+      *-----------------------------------------------------------------------*
+LOGGER:
+      FATAL.ERR = 0
+      * should be at eof but make sure - no log data loss
+      SEEK LOG.IO, 0, 2 THEN
+         WRITESEQ LOG.LINE ON LOG.IO ELSE
+            CRT "ERROR in logging: WRITESEQ failed - status(":STATUS():")"
+            CRT LOG.LINE
+            FATAL.ERR = 1
+         END
+      END ELSE
+         CRT "Cannot find end-of-file in ":LOG.FILE:", ":HAS.STR
+         FATAL.ERR = 1
+      END
+      IF FATAL.ERR THEN
+         RELEASE SOURCE
+         RELEASE TARGET
+         CLOSE SOURCE
+         CLOSE TARGET
+         CRT "* Locks have been released."
+         CRT "* Files have been closed."
+         STOP
+      END
+      LOG.LINE = ""
+      RETURN
+      *
+   END

@@ -1,0 +1,16 @@
+      SUBROUTINE SR.ITEM.EXISTS (EXISTS, FILEvar, IDvar, RECvar, KEEPLOCK)
+$INCLUDE I_Prologue
+      EXISTS = 0
+      IF KEEPLOCK THEN
+         READU RECvar FROM FILEvar, IDvar LOCKED rSTATUS=2 THEN rSTATUS=1 ELSE rSTATUS=0
+      END ELSE
+         READ RECvar  FROM FILEvar, IDvar THEN rSTATUS=1 ELSE rSTATUS=0
+         IF rSTATUS > 0 THEN
+            CHK = RECORDLOCKED(FILEvar, IDvar)
+            IF CHK < 0 THEN rSTATUS = 2
+         END
+      END
+      EXISTS = rSTATUS
+      RETURN
+   END
+

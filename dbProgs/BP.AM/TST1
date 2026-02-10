@@ -1,0 +1,29 @@
+**********************************************************
+* Record Updater ---- 1 at a time -------
+**********************************************************
+      PROMPT ""
+10:   PRINT "File ": ; INPUT F
+      OPEN F TO IOFILE ELSE STOP
+20:   PRINT " Key ": ; INPUT ID
+      READ REC FROM IOFILE, ID ELSE
+         CRT "This will be a new record !"
+         CRT
+      END
+*
+30:   PRINT "  Av ": ; INPUT A
+      IF NOT(NUM(A)) THEN GO 99
+40:   PRINT "  Mv ": ; INPUT M
+      IF NOT(NUM(M)) THEN GO 99
+50:   PRINT "  Sv ": ; INPUT S
+      IF NOT(NUM(S)) THEN GO 99
+*
+60:   PRINT " Val ": ; INPUT V
+      IF V="" THEN V = REC<A,M,S>
+      REC<A,M,S> = V
+      IF V = "*" THEN REC<A,M,S> = ""
+*
+      WRITE REC ON IOFILE, ID
+      GO 30
+99:
+      STOP
+   END

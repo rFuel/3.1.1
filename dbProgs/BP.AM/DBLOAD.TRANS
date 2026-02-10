@@ -1,0 +1,80 @@
+$INSERT I_Prologue
+      PROMPT ""
+      ERR=""
+      CALL SR.OPEN.CREATE (ERR, "ACCOUNTS", "DYNAMIC", ACCOUNTS.DATA)
+      IF ERR # "" THEN STOP "Issue ACCOUNTS file ":ERR
+      CALL SR.OPEN.CREATE (ERR, "TRAN", "DYNAMIC", TRANS.DATA)
+      IF ERR # "" THEN STOP "Issue TRANS file ":ERR
+      CALL SR.FILE.OPEN (ERR, "UPL.CONTROL", UPL.CONTROL)
+      IF ERR # "" THEN STOP "Issue with UPL.CONTROL file ":ERR
+      PRINT "Starting"
+      *
+      READ CONTROL.REC FROM UPL.CONTROL, "DBLOAD.PARAMS" ELSE CONTROL.REC = ""
+      MAX.TRANS = FIELD(CONTROL.REC<3>, " ", 1)+0
+      IF MAX.TRANS = 0 THEN MAX.TRANS = 5
+      *
+      CLEARFILE TRANS.DATA
+      SELECT ACCOUNTS.DATA
+      TCNT = 0
+      TINDX = ""
+      LOOP
+         READNEXT ACCOUNT.ID ELSE EXIT
+         READ AREC FROM ACCOUNTS.DATA, ACCOUNT.ID ELSE CONTINUE
+         AC.TYPE = ""
+         IF FIELD(ACCOUNT.ID, "S", 1) # ACCOUNT.ID THEN AC.TYPE = "S"
+         IF FIELD(ACCOUNT.ID, "I", 1) # ACCOUNT.ID THEN AC.TYPE = "I"
+         IF FIELD(ACCOUNT.ID, "L", 1) # ACCOUNT.ID THEN AC.TYPE = "L"
+         CBAL   = AREC<2,1,1>
+         OPENED = AREC<1,1,1>
+         IF OPENED < 18390 THEN OPENED = 18390
+         LOAN   = AREC<7,1,1>
+         REPAY  = AREC<11,1,1>
+         AMOUNT = ""
+         EOT    = RND(3)+1
+         IF AC.TYPE = "L" AND (REPAY+0) > 0 THEN
+            PAID   = LOAN - CBAL
+            EOT    = INT(PAID / REPAY)
+            AMOUNT = INT(REPAY+0.5)
+         END ELSE
+            AMOUNT = INT((CBAL / EOT)+0.5)
+         END
+         TRAN.DATE = OPENED
+         TRAN.TIME = ICONV("06:00:00", "MTS")
+         *
+         FOR EXTN = 1 TO 2
+            TREC   = ""
+            FOR T = 1 TO MAX.TRANS
+               ATM.ID = RND(465) + 1
+               MCT.ID = RND(498765) + 1
+               TRAN.CODE = (RND(9)+1) * 10
+               LINE = ""
+               LINE<1,1,1> = AMOUNT
+               LINE<1,2,1> = "C"
+               LINE<1,3,1> = ATM.ID
+               LINE<1,4,1> = MCT.ID
+               LINE<1,5,1> = TRAN.CODE
+               LINE<1,6,1> = TRAN.DATE
+               LINE<1,7,1> = TRAN.TIME
+               LINE<1,8,1> = TRAN.DATE
+               LINE<1,9,1> = TRAN.TIME + (RND(337) + 10)
+               LINE<1,30,1>  = ""
+               LINE<1,30,2>  = ""
+               IF TREC # "" THEN TREC = @FM:TREC
+               TREC = LINE:TREC
+               TRAN.DATE += 1
+               TRAN.TIME += 1
+               IF (TRAN.TIME > 86400) THEN TRAN.TIME = ICONV("06:00:00", "MTS")
+               IF (TRAN.DATE > DATE()) THEN TRAN.DATE = DATE()
+               TCNT += 1
+               IF INT(TCNT/1000) = (TCNT/1000) THEN PRINT TCNT
+            NEXT T
+            TINDX<EXTN, 2> = TRAN.DATE
+            WRITE TREC ON TRANS.DATA, ACCOUNT.ID:"/":EXTN
+            SLEEP 1
+         NEXT EXTN
+         WRITE TINDX ON TRANS.DATA, ACCOUNT.ID:"/0"
+         SLEEP 1
+      REPEAT
+      PRINT "Done. ":TCNT:" transactions created"
+      STOP
+   END

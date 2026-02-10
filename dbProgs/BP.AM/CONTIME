@@ -1,0 +1,14 @@
+      PROMPT ""
+10*
+      TME = FIELD(@SENTENCE, ' ', 2)
+      IF TME = '' THEN
+         PRINT 'Time: ': ; INPUT TME
+         IF TME = '' THEN STOP
+      END
+      IF NUM(TME) AND TME # '' THEN
+         PRINT OCONV(TME, 'MTS')
+      END ELSE
+         PRINT ICONV(TME, 'MTS')
+      END
+      GO 10
+   END

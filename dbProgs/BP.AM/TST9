@@ -1,0 +1,66 @@
+      CALL SR.FILE.OPEN (ERR, "DICT uDELTA.LOG", uDELTA.DICT) ; IF ERR THEN STOP
+      OPEN "MYFILE" TO MYFILE ELSE STOP
+      OPEN "&SAVEDLISTS&" TO SL ELSE STOP
+      ACT = "RFUEL"
+      FIL = "MYFILE"
+      SELECT MYFILE
+      LOOP
+         READNEXT IID ELSE EXIT
+         READ RECORD FROM MYFILE, IID ELSE CONTINUE
+         READ AUD.CTRL FROM uDELTA.DICT, ACT:"_":FIL THEN
+            I = 1 ; EOI = DCOUNT(AUD.CTRL, @FM)
+            LOOP
+               IF I > EOI THEN EXIT
+               IF AUD.CTRL<I>[1,1] = "#" THEN
+                  AUD.CTRL = DELETE(AUD.CTRL, I,0,0)
+                  EOI -= 1
+               END ELSE
+                  I += 1
+               END
+            REPEAT
+            FILTER = AUD.CTRL<1>
+            STARTSWITH = AUD.CTRL<2>
+            ENDSWITH = AUD.CTRL<3>
+            CONTAINS = AUD.CTRL<4>
+            INLIST = AUD.CTRL<5>
+            AV = FIELD(FILTER, ",", 1) ; IF AV = "" THEN AV = 0
+            MV = FIELD(FILTER, ",", 2) ; IF MV = "" THEN MV = 0
+            SV = FIELD(FILTER, ",", 3) ; IF SV = "" THEN SV = 0
+            IF AV = 0 THEN
+               FILTER = IID
+            END ELSE
+               FILTER = RECORD<AV, MV, SV>
+            END
+            PASSED = 0
+            * If IID is in a selected list, then no other checks required !!
+            IF INLIST # "" THEN
+               READ CHK FROM SL, INLIST THEN
+                  LOCATE(IID, CHK; FND) THEN PASSED = 1
+                  CHK = ""
+               END
+            END
+            *
+            IF NOT(PASSED) THEN
+               * pass is an OR construct - if any is true, then pass
+               IF STARTSWITH # "" THEN
+                  CHK = FILTER[1, LEN(STARTSWITH)]
+                  IF CHK = STARTSWITH THEN PASSED = 1
+               END
+               IF ENDSWITH # "" THEN
+                  CHK = FILTER[(LEN(FILTER) - LEN(ENDSWITH)) + 1, LEN(ENDSWITH)]
+                  IF CHK = ENDSWITH THEN PASSED = 1
+               END
+               IF CONTAINS # "" THEN
+                  IF INDEX(FILTER, CONTAINS, 1) THEN PASSED = 1
+               END
+            END
+         END
+         IF PASSED THEN
+            CRT IID:"  passed checks"
+         END ELSE
+            CRT IID:"  failed checks"
+         END
+      REPEAT
+      CRT 'done'
+      STOP
+   END

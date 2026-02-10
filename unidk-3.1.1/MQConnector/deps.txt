@@ -1,0 +1,4 @@
+com.unilibre:MQConnector:jar:1.0.0-SNAPSHOT
++- org.apache.activemq:activemq-all:jar:5.15.9:compile
++- org.apache.activemq:artemis-jms-client-all:jar:2.32.0:compile
+\- com.unilibre:cipher:jar:1.0.0-SNAPSHOT:compile

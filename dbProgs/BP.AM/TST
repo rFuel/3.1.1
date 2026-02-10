@@ -1,0 +1,61 @@
+      RECORD = ""
+      RECORD<1,2,4> = 45678333
+      X = 1
+      RECORD<X, 2, 4> = (RECORD<X, 2, 4> / 1000)
+      CRT RECORD
+      STOP
+      EFILE = "CUSTOMER"
+      EXE = "LIST.SICA ":EFILE
+      EXECUTE EXE CAPTURING JUNK
+      JUNK = JUNK[INDEX(JUNK, "LIST.SICA", 1), LEN(JUNK)]
+      *
+      TNAME = ""
+      SNAME = ""
+      EVENT = ""
+      ETIME = ""
+      EOA = DCOUNT(JUNK, @FM)
+      FOR A = 1 TO EOA
+         LINE = JUNK<A>
+         EOM = DCOUNT(LINE, @VM)
+         FOR M = 1 TO EOM
+            LINE = JUNK<A,M>
+            EOS = DCOUNT(LINE, @SM)
+            FOR S = 1 TO EOS
+               LINE = TRIM(TRIMF(JUNK<A,M,S>))
+*           CRT "<":A:",":M:",":S:">  ":LINE
+               LPARTS = EREPLACE(LINE, " ", @FM)
+               WORD = UPCASE(LPARTS<1>)
+               IF WORD = "TRIGGER" THEN TNAME = LPARTS<2>
+               IF WORD = "CALLS" THEN
+                  SNAME = LPARTS<2>
+                  ETIME = UPCASE(LPARTS<5>)
+                  EVENT = UPCASE(LPARTS<6>)
+               END
+               IF TNAME#"" AND SNAME#"" AND ETIME#"" AND EVENT#"" THEN
+                  GOSUB DO..TRIGGER
+               END
+            NEXT S
+         NEXT M
+      NEXT A
+      STOP
+      * -------------------------------
+DO..TRIGGER:
+      TNAME = EREPLACE(TNAME, '"', "")
+      TNAME = EREPLACE(TNAME, "'", "")
+      SNAME = EREPLACE(SNAME, '"', "")
+      SNAME = EREPLACE(SNAME, "'", "")
+      CHR = SNAME[1,1]
+      IF CHR = "*" OR CHR = "!" THEN SNAME = SNAME[2, LEN(SNAME)]
+      CRT
+*  CRT "Trigger : ":TNAME:" on [":EFILE:"]  Calls : [":SNAME:"]   [":ETIME:"]   [":EVENT:"]"
+*  CRT "Subr    : ":SNAME
+*  CRT "evtTIME : ":ETIME
+*  CRT "evtTYPE : ":EVENT
+      *
+      CRT "  @ID: ":EFILE:"*":ETIME:"*":EVENT
+      CRT "F<1> : ":TNAME
+      CRT "F<2> : ":SNAME
+      CRT
+      TNAME="" ; SNAME="" ; ETIME="" ; EVENT=""
+      RETURN
+   END

@@ -1,0 +1,12 @@
+      OPEN "CUSTOMER" TO CUSTOMER ELSE STOP "CUSTOMER open failure"
+      ID = "100435"
+      READ REC FROM CUSTOMER, ID THEN
+         IF REC<25> = "S" THEN
+            REC<25> = "J"
+            WRITE REC ON CUSTOMER, ID
+         END
+      END ELSE
+         PRINT ID + " not found in file CUSTOMER"
+      END
+      STOP
+   END

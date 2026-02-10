@@ -1,0 +1,13 @@
+      SUBROUTINE tTEST2(TrigName, Schema, u2File, Event, Time,
+         NewID, NewRec, OldID, OldRec, Assoc, Assoc.Event,
+         Count, Chain.Cascade, Cascade)
+      * ------------------------------------------------
+      OPEN "BP.UPL" TO IOFILE THEN
+         READU REC FROM IOFILE, "tLOGS" ELSE REC = ""
+         REC<-1> = "tTEST2: ":Time
+         WRITE REC ON IOFILE, "tLOGS"
+         RELEASE IOFILE, "tLOGS"
+      END
+      RETURN
+      STOP
+   END

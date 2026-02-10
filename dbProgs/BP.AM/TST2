@@ -1,0 +1,12 @@
+*******************************************************************
+      OPEN "MYFILE" TO MYFILE ELSE STOP
+      CRT "Starting:"
+      SELECT MYFILE
+      LOOP
+         READNEXT ID ELSE EXIT
+         READ REC FROM MYFILE, ID ELSE CONTINUE
+         REC = REC<1>
+         WRITE REC ON MYFILE, ID
+      REPEAT
+      CRT "Done."
+   END

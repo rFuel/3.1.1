@@ -1,0 +1,28 @@
+      *
+      * Test BIG correlation ID's and UV's new "size" limit !!
+      *
+      QFILE = "upl_CLIENT_DATA_11988"
+      CORRID = "uWhse_upl_CLIENT_DATA_11988"
+      CORRID = "uWhse_11988_CLIENT"
+      *
+      * Why does corrid contain the file name ??
+      * How will rFuel react if CORRID is a uuid for example ???
+      *
+      CRLF = CHAR(13):CHAR(10)
+      ANS = ""
+      PGE = 99
+      FR = 1
+      CALL uFETCH_PREP (ANS ,"REFRESH" ,QFILE ,CORRID ,PGE ,"DATA" )
+      TT = FR + PGE
+      LOOP
+         CALL uFETCH (ANS ,QFILE ,FR ,TT ,"999999" ,CORRID )
+         IF ANS = "" THEN CRT "error" ; EXIT
+         ANS = EREPLACE(ANS, CRLF, @FM)
+         EOI = DCOUNT(ANS, @FM)
+         CRT "get [":FR:"] [":TT:"]   -- > ":EOI
+         IF ANS<EOI> = "[<EOP>]" THEN EXIT
+         FR = TT
+         TT = TT + PGE + 1
+      REPEAT
+      STOP
+   END

@@ -1,0 +1,223 @@
+      PROMPT ""
+      ERR=""
+      OPEN "BOYS"       TO BOYS.DATA         ELSE STOP "BOYS"
+      OPEN "GIRLS"      TO GIRLS.DATA        ELSE STOP "GIRLS"
+      OPEN "FAMILY"     TO FAMILY.DATA       ELSE STOP "FAMILY"
+      OPEN "ADDRESS"    TO ADDRESS.DATA      ELSE STOP "ADDRESS"
+      OPEN "POST.CODES" TO POST.CODES.DATA   ELSE STOP "POST.CODES"
+      OPEN "DIAGNOSIS"  TO DIAGNOSIS.DATA    ELSE STOP "DIAGNOSIS"
+      OPEN "PATIENTS"   TO PATIENTS.DATA     ELSE STOP "PATIENTS"
+      OPEN "FACILITY"   TO FACILITY.DATA     ELSE STOP "FACILITY"
+      OPEN "STAFF"      TO STAFF.DATA        ELSE STOP "STAFF"
+      *
+      CLEARFILE PATIENTS.DATA
+      *
+      MONTHS = "JAN.FEB.MAR.APR.MAY.JUN.JUL.AUG.SEP.OCT.NOV.DEC"
+      MONTHS = EREPLACE(MONTHS, ".", @FM)
+      *
+      FACILITYIDS  = ""
+      SELECT FACILITY.DATA
+      LOOP
+         READNEXT ID ELSE EXIT
+         FACILITYIDS<1,-1> = ID
+      REPEAT
+      DIAGNOSISIDS  = ""
+      SELECT DIAGNOSIS.DATA
+      LOOP
+         READNEXT ID ELSE EXIT
+         DIAGNOSISIDS<1,-1> = ID
+      REPEAT
+      STAFFIDS = ""
+      SELECT STAFF.DATA
+      LOOP
+         READNEXT ID ELSE EXIT
+         STAFFIDS<1,-1> = ID
+      REPEAT
+      *
+      INCIDENTIDS   = "ADM.OBS.OP.POP"
+      SEVERITYIDS   = "LOW.MED.HIGH"
+      BLOODTYPIDS   = "A.B.AB.O"
+      INCIDENTIDS   = EREPLACE(INCIDENTIDS, ".", @VM)
+      SEVERITYIDS   = EREPLACE(SEVERITYIDS, ".", @VM)
+      BLOODTYPIDS   = EREPLACE(BLOODTYPIDS, ".", @VM)
+      MAX = 999
+      FRM = 100001
+      EOI = FRM + MAX
+      FOR ID = FRM TO EOI
+         REC = ""
+         A = ID/2
+         Z = ID/13
+         MALE = (INT(A) = A)
+         IF MALE THEN GENDER = "M" ELSE GENDER = "F"
+         IF (INT(ID/27) = (ID/27)) THEN GENGER = "U"
+         *
+         BLOOD = BLOODTYPIDS<1, RND(DCOUNT(BLOODTYPIDS, @VM)) + 1>
+         *
+         SURNAME = ""
+         LOOP WHILE SURNAME = "" DO
+            KEY = RND(3000)
+            READ SURNAME FROM FAMILY.DATA, KEY ELSE NULL
+         REPEAT
+         *
+         ST.NBR = ""
+         STREET = ""
+         PCODE  = ""
+         SUBURB = ""
+         NBR.ENTRIES = 1; * RND(4) + 1
+         FOR ADRx = 1 TO NBR.ENTRIES
+            ST.NBR<-1> = RND(100)+1
+            *
+            STNAME=""
+            LOOP WHILE STNAME = "" DO
+               KEY = RND(3000)
+               READ STNAME FROM ADDRESS.DATA, KEY ELSE NULL
+            REPEAT
+            STREET<-1> = STNAME
+            *
+            TMP1 = ""
+            TMP2 = ""
+            LOOP WHILE TMP1 = "" DO
+               KEY = "4":RND(999)
+               READ JUNK FROM POST.CODES.DATA, KEY THEN 
+                  TMP1 = KEY
+                  EOS  = DCOUNT(JUNK, @VM)
+                  TMP2 = JUNK<1,RND(EOS)+1>
+               END
+            REPEAT
+            PCODE<-1>  = TMP1
+            SUBURB<-1> = TMP2
+         NEXT ADRx
+         *
+         IF MALE THEN 
+            USE.FILE = BOYS.DATA
+            TITLE = "MR"
+         END ELSE 
+            USE.FILE = GIRLS.DATA
+            TITLE = "MS"
+         END
+         GIVENS = ""
+         NBR.NAMES = 0
+         LOOP WHILE NBR.NAMES < 2 DO
+            KEY = RND(3000)
+            READ NAME FROM USE.FILE, KEY ELSE CONTINUE
+            IF GIVENS # "" THEN GIVENS := " "
+            GIVENS := NAME
+            NBR.NAMES += 1
+         REPEAT
+         INITIALS = GIVENS[1,1]:FIELD(GIVENS, " ", 2)[1,1]
+         PREFERRED = FIELD(GIVENS, " ", 1)
+         IF INT(Z) = Z THEN PREFERRED = FIELD(GIVENS, " ", 2)
+         *
+         MEDICARE = ""
+         FOR I = 1 TO 11
+            MEDICARE := RND(9)
+         NEXT I
+         *
+         DOB = ""
+         LOOP WHILE DOB = "" DO
+            DD = ("0":RND(31)) "R#2"
+            MM = MONTHS<RND(12)+1>
+            AGE = RND(65)
+            IF AGE < 18 THEN CONTINUE
+            DTE = DD:" ":MM:" ":(2018 - AGE)
+            IF OCONV(ICONV(DTE, "D4"), "D4") = DTE THEN DOB = ICONV(DTE, "D4")
+         REPEAT
+         *
+         HEIGHT = RND(150) + 45
+         IF HEIGHT < 100 THEN HEIGHT += 70
+         WEIGHT = RND(50) + 65
+         *
+         arrDOI = ""
+         arrINCIDENT = ""
+         arrSEVERITY = ""
+         arrDIAGNOSIS = ""
+         arrFACILITY = ""
+         arrBLOOD = ""
+         arrHEIGHT = ""
+         arrWEIGHT = ""
+         arrINSURANCE = ""
+         arrCOMMENTS = ""
+         arrSTAFF = ""
+         *
+         fDOI = ""    ; *  Date of Incident
+         LOOP WHILE fDOI = "" DO
+            DD = ("0":RND(31)) "R#2"
+            MM = MONTHS<RND(12)+1>
+            AGE = RND(50)
+            DTE = DD:" ":MM:" ":(2018 - AGE)
+            IF OCONV(ICONV(DTE, "D4"), "D4") = DTE THEN fDOI = ICONV(DTE, "D4")
+         REPEAT
+         DOI = fDOI
+         FOR MV = 1 TO 3
+            *
+            IMV = RND(DCOUNT(INCIDENTIDS, @VM))+1
+            SMV = RND(DCOUNT(SEVERITYIDS, @VM))+1
+            DMV = RND(DCOUNT(DIAGNOSISIDS, @VM))+1
+            FMV = RND(DCOUNT(FACILITYIDS, @VM))+1
+            NMV = RND(DCOUNT(STAFFIDS, @VM))+1
+            INCIDENT = INCIDENTIDS<1, IMV>
+            SEVERITY = SEVERITYIDS<1, SMV>
+            DIAGNOSIS= DIAGNOSISIDS<1, DMV>
+            FACILITY = FACILITYIDS<1, FMV>
+            STAFF    = STAFFIDS<1, NMV>
+            *
+            COMMENT  = INCIDENT:" at ":OCONV(TIME() - RND(319), "MTS")
+            *
+            arrDOI         := DOI
+            arrINCIDENT    := INCIDENT
+            arrSEVERITY    := SEVERITY
+            arrDIAGNOSIS   := DIAGNOSIS
+            arrFACILITY    := FACILITY
+            arrBLOOD       := BLOOD
+            arrHEIGHT      := HEIGHT
+            arrWEIGHT      := WEIGHT + RND(12)
+            arrINSURANCE   := ""
+            arrCOMMENTS    := COMMENT
+            arrSTAFF       := STAFF
+            *
+            IF MV <= 3 THEN
+               arrDOI         := @VM
+               arrINCIDENT    := @VM
+               arrSEVERITY    := @VM
+               arrDIAGNOSIS   := @VM
+               arrFACILITY    := @VM
+               arrBLOOD       := @VM
+               arrHEIGHT      := @VM
+               arrWEIGHT      := @VM
+               arrINSURANCE   := @VM
+               arrCOMMENTS    := @VM
+               arrSTAFF       := @VM
+            END
+            DOI += RND(365)
+         NEXT MV
+         *
+         REC<1,1>    = SURNAME
+         REC<1,2>    = GIVENS
+         REC<1,3>    = PREFERRED
+         REC<1,5>    = MEDICARE
+         REC<2,1>    = DOB
+         REC<3,1>    = GENDER
+         REC<4,1>    = ST.NBR:" ":STREET
+         REC<5,1>    = SUBURB
+         REC<6,1>    = "BRISBANE"
+         REC<7,1>    = PCODE
+         REC<8,1>    = "QLD"
+         * -----------------------------------------
+         REC<9,1>    = arrDOI
+         REC<10,1>   = arrINCIDENT
+         REC<11,1>   = arrSEVERITY
+         REC<12,1>   = arrDIAGNOSIS
+         REC<13,1>   = arrFACILITY
+         REC<14,1>   = arrBLOOD
+         REC<15,1>   = arrHEIGHT
+         REC<16,1>   = arrWEIGHT
+         REC<17,1>   = arrINSURANCE
+         REC<20,1>   = arrCOMMENTS
+         REC<21,1>   = arrSTAFF
+         * -----------------------------------------
+         WRITE REC ON PATIENTS.DATA, ID
+      NEXT ID
+*
+      PRINT "Done. Created ":MAX:" patient records"
+      STOP
+   END

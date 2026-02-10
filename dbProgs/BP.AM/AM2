@@ -1,0 +1,8 @@
+      OPEN "CUSTOMER" TO FILEIO ELSE STOP
+      SELECT FILEIO
+      LOOP
+         READNEXT ID ELSE EXIT
+         WRITEV "" ON FILEIO, ID, 33
+      REPEAT
+      STOP
+   END

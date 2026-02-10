@@ -1,0 +1,14 @@
+      OPEN "TRAN" TO TRAN ELSE STOP
+      SELECT TRAN
+      LOOP
+         READNEXT ID ELSE EXIT
+         READ TREC FROM TRAN, ID ELSE CONTINUE
+         ACID = FIELD(ID, "/", 1)
+         READ BASE FROM TRAN, ACID ELSE BASE = ""
+         BASE<-1> = TREC
+         WRITE BASE ON TRAN, ACID
+         DELETE TRAN, ID
+      REPEAT
+      CRT "Done. "
+      STOP
+   END

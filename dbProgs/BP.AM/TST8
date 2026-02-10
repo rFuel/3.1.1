@@ -1,0 +1,10 @@
+      ANS = ""
+      FILE= "uDELTA.LOG"
+      MAX = 1000
+      MSG =""
+      OLDstr=".ulog"
+      NEWstr=".er45t9kf34"
+      CALL SR.GETDELTAKEYS (ANS, FILE, MAX, MSG , OLDstr, NEWstr)
+      CRT MSG
+      STOP
+   END

@@ -1,0 +1,82 @@
+/*
+    This represent a working test of a stored procedure which will push data into RAW tables.
+
+    It is implemented in sfLoadData.CheckStoredProcs()
+*/
+
+USE ROLE ACCOUNTADMIN;
+USE DATABASE BANKING_LZ;
+USE WAREHOUSE BANKING_WH;
+USE SCHEMA RAW;
+
+SHOW PROCEDURES;
+
+DROP PROCEDURE BANKING_LZ.RAW.spTEST (VARCHAR,VARCHAR);
+
+CREATE OR REPLACE PROCEDURE BANKING_LZ.RAW.spTEST(SCH VARCHAR,INFILE VARCHAR())
+RETURNS VARCHAR()
+LANGUAGE SQL
+EXECUTE AS CALLER
+AS
+$$
+DECLARE
+    LFILE  VARCHAR;
+    RFILE  VARCHAR;
+    STAGE  VARCHAR;
+    CINTO  VARCHAR;
+    SCRUB  VARCHAR;
+    COPY   VARCHAR;
+    RMOVE  VARCHAR;
+BEGIN
+    LFILE := 'tmp' || INFILE;
+    RFILE := INFILE;
+    STAGE := SCH || '_' || INFILE;
+    RMOVE := 'REMOVE @' || STAGE || ';';
+    -- --------------------------------------------------------------------------------------------------------------------------
+    -- NOTES:
+    --      1. rFuel has uploaded data into an internal stage called {SCH_INFILE}  e.g. RAW_CLIENT_DATA
+    --      2. This proc needs to;
+    --        a. COPY INTO tmp{INFILE} FROM @{stage} FILE_FORMAT = (FORMAT_NAME = {SCH}.csvFormatter) ON_ERROR = 'skip_file'
+    --        b. DROP STAGE {stage}
+    --        c. pre -SCRUB duplicates from tmp{INFILE}
+    --        d. COPY INTO {INFILE}
+    --        e. post-SCRUB duplicates from tmp{INFILE}  which "should" clear tmp{INFILE}
+    -- --------------------------------------------------------------------------------------------------------------------------
+
+    --
+    -- 1. COPY INTO tmp{INFILE}
+    --
+    CINTO := 'COPY INTO ' || SCH|| '.tmp' || INFILE || ' FROM @' || STAGE ||
+    ' FILE_FORMAT = (FORMAT_NAME = ' || SCH ||
+    '.csvFormatter) ON_ERROR = \'skip_file\';';
+
+    --
+    -- 2. remove duplicate rows from tmp{INFILE} BEFORE copyiny into {TBL}
+    --
+    SCRUB := 'DELETE FROM ' || :LFILE || ' LeftTable USING (SELECT MD5, uID, ' ||
+    'LoadDte FROM ' || :RFILE || ') AS RightTable WHERE LeftTable.MD5 = ' ||
+    'RightTable.MD5 AND LeftTable.uID = RightTable.uID AND ' ||
+    'LeftTable.LoadDte = RightTable.LoadDte;';
+
+    --
+    -- 3. load tmp{INFILE} data which is now free of duplicates
+    --
+    COPY := 'INSERT INTO ' || :RFILE || ' SELECT * FROM ' || :LFILE || ';';
+
+    --
+    -- 4. remove rows just copied.  Do the same scrub again.
+    --
+
+    execute immediate :CINTO;
+    execute immediate :RMOVE;
+    execute immediate :SCRUB;
+    execute immediate :COPY;
+    execute immediate :SCRUB;
+
+    RETURN 'PASS';
+
+END
+$$
+;
+
+CALL RAW.spTEST('RAW','CLIENT_DATA');

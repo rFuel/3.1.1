@@ -1,0 +1,26 @@
+SUBROUTINE TRIGTEST(TrigName, Schema, u2File, Event, B4Aftr, NewID, NewRec, OldID, OldRec, Assoc, Assoc.Event, Count, Chain.Cascade, Cascade)
+   *
+10 *
+   OPENSEQ "uLOG", "uTriggers"  TO LOGIO THEN
+      STATUS lSTATS FROM LOGIO ELSE lSTATS=""
+      IF lSTATS<6> > 10000000 THEN
+         CLOSESEQ LOGIO
+         OPEN "uLOG" TO LOGIO THEN
+            WRITE "" ON LOGIO, "uTriggers"
+            CLOSE LOGIO
+            GO 10
+         END
+         RETURN      ;* TO CALLING PROGRAM
+      END
+      SEEK LOGIO, 0,2 ELSE NULL
+      * --------------------------------------------------
+      LOG.MSG = "TRIGTEST invoked on Event ":B4Aftr:" ":Event:" of File ":u2File:" on item ":NewID
+      WRITESEQ LOG.MSG TO LOGIO ELSE NULL
+      LOG.MSG = "   ":u2File:"*":B4Aftr:"*":Event
+      WRITESEQ LOG.MSG TO LOGIO ELSE NULL
+      * --------------------------------------------------
+      CLOSESEQ LOGIO
+   END
+   *
+   RETURN            ;* TO CALLING PROGRAM
+END

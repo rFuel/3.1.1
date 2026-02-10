@@ -1,0 +1,124 @@
+$INCLUDE I_Prologue
+      *
+      *  Synopsis:
+      *  07-10-20 a) RBI.USER not created !
+      *           b) DEV.... file must be cleared !!
+      *
+      * ----------------------------------------------------------------------
+      LOG.KEY     = "CDR-OB":@FM
+      THIS.ACCT   = "RFUEL"
+      LIVE.ACCT   = "DATA"
+      ERR         = ""
+      NEW.LIST    = ""
+      *
+      CRT "Preparing Test Data ----------------------------"
+      CALL SR.FILE.OPEN (ERR, "VOC"  , VOC ) ; IF ERR # "" THEN GO END..PROG
+      CALL SR.FILE.OPEN (ERR, "&SAVEDLISTS&"  , LIST.CONTROL ) 
+      IF ERR # "" THEN 
+         ERR = "&SAVEDLISTS& open failure."
+         GO END..PROG
+      END
+      GOSUB CHECK..FILES
+      *
+      CALL SR.FILE.OPEN (ERR, "CLIENT"  , CLIENT )
+      IF ERR # "" THEN
+         CRT ERR
+         GO END..PROG
+      END
+      CALL SR.FILE.OPEN (ERR, "RBI.USER"  , RBI.USER )
+      IF ERR # "" THEN
+         CRT ERR
+         GO END..PROG
+      END
+      *
+      READ CONTROL FROM LIST.CONTROL, "RAB.BASE" ELSE
+         ERR = "No items in RAB.BASE"
+         CRT "*** FATAL *** ":ERR
+         GO END..PROG
+      END
+      C = 0
+      LOOP
+         C += 1
+         OLD = CONTROL<C>
+      UNTIL OLD = "" DO
+         NEW = 7; TRY = 1
+         LOOP
+            FOR CLID = 2 TO 6
+               NEW := RND(9)
+            NEXT CLID
+            LOCATE(NEW, NEW.LIST; FND) ELSE EXIT
+            CRT "Retrying on ":OLD
+            TRY += 1
+            IF TRY > 5 THEN 
+               CRT "   Unknown error"
+               GO END..PROG
+            END
+         REPEAT
+         CRT " "
+         CRT "Taking Client ":OLD:" and making ":NEW
+         CRT "   1. CLIENT and CLIENT.AML"
+         CALL SR.CLIENTBLOCK(ERR, OLD, NEW)
+         IF ERR # "" THEN GO END..PROG
+         CRT "   2. ACCOUNT, CDC.ACCOUNT and TRAN (header)"
+         CRT "   3. TRAN, TRAN.EXT and PSEUDO.TRAN"
+         READ CLIREC FROM CLIENT, NEW ELSE CLIREC = ""
+         ACCLIST = CLIREC<40>:@VM:CLIREC<57>
+         EOX = DCOUNT(ACCLIST, @VM)
+         FOR X = 1 TO EOX
+            ACC = ACCLIST<1,X>
+            IF ACC = "" THEN CONTINUE
+            oldACC = OLD:ACC
+            newACC = NEW:ACC
+            CRT "      ACCOUNT ":newACC
+            CALL SR.ACCOUNTBLOCK(ERR, oldACC, newACC)
+            IF ERR # "" THEN GO END..PROG
+            CALL SR.TRANBLOCK(ERR, oldACC, newACC)
+            IF ERR # "" THEN GO END..PROG
+         NEXT X
+         CRT "   4. AFFP, DES.DDA and DES.REMITTER"
+         CALL SR.PAYMENTBLOCK(ERR, OLD, NEW)
+         IF ERR # "" THEN GO END..PROG
+         CRT "   5. RBI.PAYEE.INDEX and RBI.PAYEE"
+         CALL SR.PAYEEBLOCK(ERR, OLD, NEW)
+         IF ERR # "" THEN GO END..PROG
+         *
+         REC = ""
+         REC<1> = NEW
+         REC<16> = "1"
+         WRITE REC ON RBI.USER, NEW
+      REPEAT
+END..PROG:
+      CRT " "
+      CRT "-------------- Done ---------------"
+      STOP
+CHECK..FILES:
+      CRT "Checking database file:-"
+      FLIST = "RBI.USER~CLIENT~CLIENT.AML~ACCOUNT~CDC.ACCOUNT~TRAN~TRAN.EXT"
+      FLIST:= "~PSEUDO.TRAN~AFFP~DES.DDA~DES.REMITTER~RBI.PAYEE.INDEX"
+      FLIST:= "~RBI.PAYEE"
+      *
+      FLIST = EREPLACE(FLIST, "~", @FM)
+      F = 0
+      LOOP
+         F += 1
+         ID = TRIM(FLIST<F>)
+      UNTIL ID = "" DO
+         DNAME = "DEV.":ID
+         PNAME = "RAB.":ID
+         OPEN DNAME TO JUNKIO ELSE
+            EXE = "CREATE.FILE ":DNAME:" 30"
+            EXECUTE EXE CAPTURING OUT
+         END
+         CLEARFILE JUNKIO
+         CLOSE JUNKIO
+         Q.PTR = "Q"
+         Q.PTR<2> = LIVE.ACCT
+         Q.PTR<3> = ID
+         WRITE Q.PTR ON VOC, PNAME
+         Q.PTR<2> = THIS.ACCT
+         Q.PTR<3> = DNAME
+         WRITE Q.PTR ON VOC, ID
+      REPEAT
+      CRT "Done with files"
+      RETURN
+   END

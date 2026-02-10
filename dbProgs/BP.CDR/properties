@@ -1,0 +1,13 @@
+remaccess=u2set
+u2host=172.31.8.36
+u2port=
+u2acct=RFUEL
+u2user=rfuel
+u2pwd=un1l1br3
+inf.logging=1
+upl.logging=0
+dirty.updates=1
+allow.append=1
+ulog.size=1048576
+ulog.max=10
+jlogs=false

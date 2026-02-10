@@ -1,0 +1,40 @@
+      SUBROUTINE SR.BAHA.TEST(ERR, FILE, ITEM, EXISTS)
+      ERR         = ""
+      EXISTS      = @false
+      PROCEED     = @true
+      DEBUG.LOGS  = @true
+      LOG.LEVEL   = 0
+      * -----------------------------------*
+      * keep this LOG.ID for yourself mate *
+      LOG.ID         = "BAHA" : @FM
+      LOG.MSG        = "   "
+      GOSUB WRITE..LOG
+      LOG.MSG        = "Starting SR.BAHA.TEST"
+      GOSUB WRITE..LOG
+      *
+      OPEN FILE TO FILE.HANDLE THEN
+         LOG.MSG     = "OPEN File: " : FILE : " was successfull"
+         GOSUB WRITE..LOG
+      END ELSE
+         LOG.MSG     = "OPEN File: " : FILE : " has failed"
+         GOSUB WRITE..LOG
+         PROCEED = @false
+      END
+      *
+      IF PROCEED THEN
+         READ TEST.REC FROM FILE.HANDLE, ITEM THEN EXISTS = @true
+         eDESC = "false"
+         IF EXISTS THEN eDESC = "true"
+         LOG.MSG = "Item " : ITEM : " exists on File: " : FILE : " is " : eDESC
+         GOSUB WRITE..LOG
+      END
+      LOG.MSG        = "Stopping SR.BAHA.TEST"
+      GOSUB WRITE..LOG
+      RETURN
+      *
+WRITE..LOG:
+      IF DEBUG.LOGS THEN
+         CALL uLOGGER (LOG.LEVEL, LOG.ID : LOG.MSG)
+      END
+      RETURN
+   END

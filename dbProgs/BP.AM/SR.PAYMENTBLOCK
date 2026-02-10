@@ -1,0 +1,91 @@
+      SUBROUTINE SR.PAYMENTBLOCK ( ERR, OLD, NEW )
+$INCLUDE I_Prologue
+      *
+      *  Synopsis:
+      *  07-10-20    a) CALLs must return newV, not use the record<a,m,s> !!!
+      *
+      * ----------------------------------------------------------------------
+      ERR         = ""
+      * ------------------------------------------------------------
+      *
+      RABAFFP  = "RAB.AFFP"         ;  DEVAFFP = "DEV.AFFP"
+      RABDDA   = "RAB.DES.DDA"      ;  DEVDDA  = "DEV.AFFP"
+      RABREM   = "RAB.DES.REMITTER" ;  DEVREM  = "DEV.DES.REMITTER"
+      RABCLIENT= ""                 ;  DEVCLIENT="DEV.CLIENT"
+      * ------------------------------------------------------------
+      CALL SR.FILE.OPEN (ERR, RABAFFP  , RAB.AFFP )
+      IF ERR # "" THEN 
+         ERR = RABAFFP:" open failure"
+         GO END..PROG
+      END
+      CALL SR.FILE.OPEN (ERR, RABDDA  , RAB.DDA )
+      IF ERR # "" THEN 
+         ERR = RABDDA:" open failure"
+         GO END..PROG
+      END
+      CALL SR.FILE.OPEN (ERR, RABREM  , RAB.REM )
+      IF ERR # "" THEN 
+         ERR = RABREM:" open failure"
+         GO END..PROG
+      END
+      * ------------------------------------------------------------
+      CALL SR.FILE.OPEN (ERR, DEVCLIENT  , DEV.CLIENT )
+      IF ERR # "" THEN 
+         ERR = DEVCLIENT:" open failure"
+         GO END..PROG
+      END
+      CALL SR.FILE.OPEN (ERR, DEVAFFP  , DEV.AFFP )
+      IF ERR # "" THEN 
+         ERR = DEVAFFP:" open failure"
+         GO END..PROG
+      END
+      CALL SR.FILE.OPEN (ERR, DEVDDA  , DEV.DDA )
+      IF ERR # "" THEN 
+         ERR = DEVDDA:" open failure"
+         GO END..PROG
+      END
+      CALL SR.FILE.OPEN (ERR, DEVREM  , DEV.REM )
+      IF ERR # "" THEN 
+         ERR = DEVREM:" open failure"
+         GO END..PROG
+      END
+      * ------------------------------------------------------------
+      *
+      READ CLIENT FROM DEV.CLIENT, NEW ELSE
+         ERR = NEW:" not found in ":DEVCLIENT
+         GO END..PROG
+      END
+      FKEYS = CLIENT<26>
+      EOX = DCOUNT(FKEYS, @VM)
+      FOR X = 1 TO EOX
+         FKEY = "F":FKEYS<1,X>
+         READ RECORD FROM RAB.AFFP, FKEY THEN
+            RECORD = EREPLACE(RECORD, OLD, NEW)       ;* client Ids
+            newV = "" ; CALL SR.SCRUBNUMBER ( RECORD<8,1,1>, newV )    ; RECORD<8,1,1> = newV
+            EOS = DCOUNT(RECORD<19>, @VM)
+            FOR S = 1 TO EOS
+               newV = "" ; CALL SR.SCRAMBLESTRING (RECORD<19,S,1>, newV)  ; RECORD<19,S,1>= newV
+            NEXT S
+            newV = "" ; CALL SR.SCRAMBLESTRING ( RECORD<41,3,1>, newV )   ; RECORD<41,3,1>= newV
+            WRITE RECORD ON DEV.AFFP, FKEY
+         END
+      NEXT X
+      DKEYS = CLIENT<43>
+      EOX = DCOUNT(DKEYS, @VM)
+      FOR X = 1 TO EOX
+         DKEY = DKEYS<1,X>
+         READ RECORD FROM RAB.DDA, DKEY THEN
+            newV = "" ; CALL SR.SCRAMBLESTRING ( RECORD<6,1,1>, newV )    ; RECORD<6,1,1> = newV
+            WRITE RECORD ON DEV.DDA, DKEY
+         END
+         READ RECORD FROM RAB.REM, DKEY THEN
+            newV = "" ; CALL SR.SCRAMBLESTRING ( RECORD<1,1,1>, newV )    ; RECORD<1,1,1> = newV
+            WRITE RECORD ON DEV.DDA, DKEY
+         END
+      NEXT X
+      *
+      * ------------------------------------------------------------
+END..PROG:
+      IF ERR # "" THEN CRT "SR.PAYMENTBLOCK   ":ERR
+      RETURN
+   END

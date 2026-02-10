@@ -1,0 +1,15 @@
+$INSERT I_Prologue
+      PROMPT ""
+      PRINT "Loading Datasets"
+******EXECUTE "DBLOAD.DATA"
+******PRINT "Loading Post Codes -------------------------------------"
+******EXECUTE "PCODES"
+      PRINT "Loading Client   ---------------------------------------"
+      EXECUTE "DBLOAD.CLIENT"
+      PRINT "Loading Accounts ---------------------------------------"
+      EXECUTE "DBLOAD.ACCOUNT"
+      PRINT "Loading Trans    ---------------------------------------"
+      EXECUTE "DBLOAD.TRANS"
+      PRINT "Done."
+      STOP
+   END

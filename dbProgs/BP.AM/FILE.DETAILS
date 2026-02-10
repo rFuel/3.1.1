@@ -1,0 +1,25 @@
+      OPEN "VOC" TO VOC ELSE STOP "VOC open error"
+      HDG  = "FILE" "L#30": " MODU" "R#5":" TYPE" "R#5":" MMOD" "R#5":" LOAD" "R#5":"%"
+      EXECUTE "SSELECT VOC WITH F1 LIKE F..." CAPTURING OUTPUT
+      * CRT HDG
+      CNT=0
+      LOOP
+         READNEXT FILE ELSE EXIT
+         OPEN FILE TO IOFILE ELSE CONTINUE
+         MODU = INMAT()                   ;* modulo
+         TYPE = FILEINFO(IOFILE, 3)
+         MMOD = FILEINFO(IOFILE, 5)       ;* max modulo
+         LOAD = FILEINFO(IOFILE, 11)      ;* how full is it (%)?
+         *
+         LINE = FILE "L#30": " ":MODU "R#4":" ":TYPE "R#4":" ":MMOD "R#4":" ":LOAD "R#4":"%"
+         * CRT LINE
+         CRT @(-1):FILE
+         FOR I = 1 TO 20
+            CRT "   ":I "R#2":") ":FILEINFO(IOFILE, I)
+         NEXT I
+         CLOSE IOFILE
+CRT "press enter or Q ":; INPUT ANS
+IF ANS = "Q" THEN STOP
+      REPEAT
+      STOP
+   END

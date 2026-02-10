@@ -1,0 +1,27 @@
+      EOI = 10
+      CMD = @SENTENCE
+      CMD = EREPLACE(CMD, " ", @VM)
+      LOOP
+         IF CMD<1,1> = "" THEN EXIT
+         IF CMD<1,1> # "AUDLOG.TEST" THEN CMD = DELETE(CMD,1,1,0) ELSE EXIT
+      REPEAT
+      IF NUM(CMD<1,2>) AND CMD<1,2> # "" THEN EOI = CMD<1,2>
+      OPEN "MYFILE" TO IOFILE ELSE STOP
+      FOR I = 1 TO EOI
+         KEY = "ITEM:":I
+         READU OLD FROM IOFILE, KEY ELSE
+            OLD = ""
+            RELEASE IOFILE, KEY
+         END
+         DT = OCONV(DATE(), "D4-")
+         TM = OCONV(TIME(), "MTS")
+         REC = "Updated " : I : " on " : DT:"  at " : TM
+         WRITE REC ON IOFILE, KEY
+         *
+         ERR = ""
+         CALL uAUDMONITOR(ERR, "MYFILE", KEY, OLD, REC)
+         IF ERR # "" THEN CRT "ERROR: ":ERR
+      NEXT
+      CRT "Done"
+      STOP
+   END

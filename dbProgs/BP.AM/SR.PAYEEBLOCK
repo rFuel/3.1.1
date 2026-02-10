@@ -1,0 +1,73 @@
+      SUBROUTINE SR.PAYEEBLOCK ( ERR, OLD, NEW )
+$INCLUDE I_Prologue
+      *
+      *  Synopsis:
+      *  07-10-20    DEV.PAYEE.INDEX ... needs to be DEV.RBI.PAYEE.INDEX
+      *  07-10-20    a) CALLs must return newV, not use the record<a,m,s> !!!
+      *
+      * ----------------------------------------------------------------------
+      ERR         = ""
+      * ------------------------------------------------------------
+      *
+      RABPIDX  = "RAB.RBI.PAYEE.INDEX" ;  DEVPIDX  = "DEV.RBI.PAYEE.INDEX"
+      RABPAYEE = "RAB.RBI.PAYEE"       ;  DEVPAYEE = "DEV.RBI.PAYEE"
+      RABCLIENT= ""                    ;  DEVCLIENT="DEV.CLIENT"
+      * ------------------------------------------------------------
+      CALL SR.FILE.OPEN (ERR, RABPIDX  , RAB.PIDX )
+      IF ERR # "" THEN 
+         ERR = RABPIDX:" open failure"
+         GO END..PROG
+      END
+      CALL SR.FILE.OPEN (ERR, RABPAYEE  , RAB.PAYEE )
+      IF ERR # "" THEN 
+         ERR = RABPAYEE:" open failure"
+         GO END..PROG
+      END
+      * ------------------------------------------------------------
+      CALL SR.FILE.OPEN (ERR, DEVCLIENT  , DEV.CLIENT )
+      IF ERR # "" THEN 
+         ERR = DEVCLIENT:" open failure"
+         GO END..PROG
+      END
+      CALL SR.FILE.OPEN (ERR, DEVPIDX  , DEV.PIDX )
+      IF ERR # "" THEN 
+         ERR = DEVPIDX:" open failure"
+         GO END..PROG
+      END
+      CALL SR.FILE.OPEN (ERR, DEVPAYEE  , DEV.PAYEE )
+      IF ERR # "" THEN 
+         ERR = DEVPAYEE:" open failure"
+         GO END..PROG
+      END
+      * ------------------------------------------------------------
+      *
+      READ CLIENT FROM DEV.CLIENT, NEW ELSE
+         ERR = NEW:" not found in ":DEVCLIENT
+         GO END..PROG
+      END
+      ACCLIST = CLIENT<40>
+      EOX = DCOUNT(ACCLIST, @VM)
+      FOR X = 1 TO EOX
+         ACC = ACCLIST<1,X>
+         oldID = OLD:ACC
+         newID = NEW:ACC
+         READ RECORD FROM RAB.PIDX, oldID THEN
+            WRITE RECORD ON DEV.PIDX, newID
+            EOT = DCOUNT(RECORD, @FM)
+            FOR T = 1 TO EOT
+               KEY = RECORD<T>
+               READ OLDREC FROM RAB.PAYEE, KEY THEN
+                  newV = "" ; CALL SR.SCRAMBLESTRING ( OLDREC<4,1,1>, newV ) ; OLDREC<4,1,1> = newV
+                  newV = "" ; CALL SR.SCRAMBLESTRING (OLDREC<17,1,1>, newV ) ; OLDREC<17,1,1>= newV
+                  OLDREC = EREPLACE(OLDREC, OLD, NEW)
+                  WRITE OLDREC ON DEV.PAYEE, KEY
+               END
+            NEXT T
+         END
+      NEXT X
+      *
+      * ------------------------------------------------------------
+END..PROG:
+      IF ERR # "" THEN CRT "SR.PAYEEBLOCK   ":ERR
+      RETURN
+   END

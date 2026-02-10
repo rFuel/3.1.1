@@ -1,0 +1,4 @@
+CALL SR.READTRANSV2 (ANS ,",n,1,1,<fm>>,n,2,1,D4-<fm>,n,2,2,D4-<fm>,n,2,4,MTS<fm>,n,2,6,<fm>,n,2,7,<fm>,n,2,8,<fm>,n,2,9,D4-<fm>,n,3,1,MD2<fm>,n,4,1,<fm>,n,4,7,<fm>,n,4,8,<fm>,n,4,15,<fm>,n,4,19,<fm>,n,5,1,<fm>,n,5,2,<fm>,n,12,11,<fm>,n,4,1,<fm>,,,,<fm>,,,,<fm>,,,,<fm>,,,,<fm>,,,,<fm>,,,,<fm>,,,,<fm>,,,,<fm>" ,"19369" ,"ANDY:100436:100436L8" ,"ANDY:100436:100436L8" ,"" )
+CRT ANS
+STOP
+END

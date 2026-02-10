@@ -1,0 +1,10 @@
+      SUBROUTINE SR.FIND.IN.LAYOUT(ANS, LAYREC, VAR)
+$INCLUDE I_Prologue
+      ANS = 0
+      EOI = DCOUNT(LAYREC, @FM)
+      FOR I = 1 TO EOI
+         IF LAYREC<I,1> = VAR THEN ANS = I ; RETURN
+      NEXT I
+      RETURN
+   END
+

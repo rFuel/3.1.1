@@ -1,0 +1,62 @@
+      EXECUTE "CLEAR.FILE CDR.WORKFILE" CAPTURING JUNK
+*     EXECUTE "CLEAR.FILE SL" CAPTURING JUNK
+*
+      GOSUB DSD.MAKER
+*
+      SEP = ":"
+      LID = "ANDY"
+      MID = "100436"
+      AID = "100436L8"
+      IID = LID:SEP:MID:SEP:AID
+*
+      ERR = ""
+      DSD = ""
+      LOW = 18965
+      COR = "Debug-Testing"
+      ANS = ""
+*
+100:*
+      PRINT "Which subroutine?"
+      PRINT "1.  SR.GETCUSTOMERID"
+      PRINT "2.  SR.GETCUSTOMER"
+      PRINT "3.  SR.GETACCOUNTS"
+      PRINT "4.  SR.READTRANSV2"
+      PRINT "11. SR.PREP.TESTS"
+      PRINT "12. uFETCH_PREP"
+      PRINT " Choose: ": ; INPUT TYPE
+      BEGIN CASE
+         CASE TYPE = 1
+            DSD = DSD1
+            IID = LID:SEP:SEP:""
+            CALL SR.GETCUSTOMERID (ERR, DSD, IID, COR, ANS)
+         CASE TYPE = 2
+            DSD = DSD2
+            IID = LID:SEP:MID:SEP:""
+            CALL SR.GETCUSTOMER (ERR, DSD, IID, COR, ANS)
+         CASE TYPE = 3
+            DSD = DSD3
+            CALL SR.GETACCOUNTS (ERR, DSD, IID, COR, ANS)
+         CASE TYPE = 4
+            DSD = DSD4
+            CALL SR.READTRANSV2 (ERR, DSD, LOW, IID, COR, ANS)
+         CASE TYPE = 11
+            CALL SR.PREP.TESTS(ERR, "", ANS)
+         CASE TYPE = 12
+            CALL uFETCH_PREP ("" ,"REFRESH" ,"CLIENT" ,"uWhse_CUSTOMER_DATA" ,"9999" ,"DATA" )
+            CALL uFETCH ("" ,"CLIENT" ,"1" ,"9999" ,"999999" ,"uWhse_CLIENT_DATA" )
+      END CASE
+*
+      CRT "Err : ":ERR
+      CRT "Ans : ":ANS
+      STOP
+*
+* ------------------------------------------------------------------------
+*
+DSD.MAKER:
+      DSD1 = ",,,,<fm>,,,,<fm>,,,,<fm>,,,,<fm>,,,,<fm>,,,,<fm>"
+      DSD2 = ",0,,,X|CLIENT|$client$<fm>,0,,,X|CLIENT.AML|$aml$<fm>$client$,0,,,<fm>$aml$,0,,,<fm>$aml$,2,1,1,<fm>$client$,1,,,<fm>$client$,7,,,F 1<fm>$client$,7,,,<fm>,9,4,,D4-<fm>,8,,,<fm>,11,,,<fm>,12,3,,<fm>,72,,,<fm>,9,1,,<fm>,79,7,,<fm>,73,7,2,<fm>,9,2,,<fm>,79,8,,<fm>,73,8,2,<fm>,78,1,,<fm>,79,1,,<fm>,73,1,2,<fm>,78,2,,<fm>,79,2,,<fm>,73,2,2,<fm>,78,3,,<fm>,79,3,,<fm>,73,3,2,<fm>,78,4,,<fm>,79,4,,<fm>,73,4,2,<fm>,78,5,,<fm>,79,5,,<fm>,73,5,2,<fm>,82,,,<fm>,79,6,,<fm>,73,6,2,<fm>,2,2,,<fm>,3,2,,<fm>,4,2,,F" "1<fm>,4,2,,F" "2<fm>,5,2,,<fm>,2,1,,<fm>,3,1,,<fm>,4,1,,F" "1<fm>,4,1,,F" "2<fm>,5,1,,<fm>,23,1,,<fm>,23,2,,<fm>,23,3,,<fm>,23,5,,<fm>,999,,,<fm>,999,,,<fm>,999,,,<fm>,999,,,<fm>,999,,,<fm>,999,,,<fm>,999,,,<fm>,999,,,<fm>,999,,,<fm>,999,,,<fm>,999,,,<fm>,999,,,<fm>,999,,,<fm>,999,,,<fm>,999,,,<fm>"
+      DSD2 = ",0,,,<fm>,1,,,<fm>,2,1,,<fm>,2,2,,<fm>,2,3,,<fm>,3,1,,<fm>,3,2,,<fm>,3,3,,<fm>,4,1,,<fm>,4,2,,<fm>,4,3,,<fm>,5,1,,<fm>,5,2,,<fm>,5,3,,<fm>,6,,,<fm>,7,,,<fm>,7,,,F 1<fm>,7,,,F 2<fm>,8,,,<fm>"
+      DSD3 = ",0,,,X|ACCOUNT|$accounts$<fm>,0,,,X|TRAN|$tran$<fm>,0,,,S|SR.TERMDEPOSITS|$tds$<fm>,0,,,S|SR.GETACCOUNTEXTRA|$rel$<fm>,0,,,X|CDC.ACCOUNT|$cdc$<fm>,0,,,X|L_RATES|$lrates$<fm>$accounts$,0,,,<fm>$accounts$,1,1,1,D4-<fm>$accounts$,4,1,1,D4-<fm>$accounts$,28,2,1,<fm>$accounts$,7,1,1,D4-<fm>$accounts$,8,1,1,MD2<fm>$accounts$,37,2,1,<fm>$accounts$,37,3,1,D4-<fm>$tran$,4,2,1,<fm>$tran$,4,5,1,MD0<fm>$tran$,4,8,1,<fm>$tran$,5,4,1,<fm>$tran$,6,3,1,MD2<fm>$tran$,6,3,2,<fm>$tran$,6,3,3,D4-<fm>$tran$,11,7,1,<fm>$cdc$,45,1,1,MD2<fm>$cdc$,43,1,1,MD2<fm>$cdc$,46,1,1,D4-<fm>$cdc$,2,1,1,<fm>$lrates$,1,2,1,MD3<fm>$lrates$,1,6,1,<fm>$tds$,1,n,1,<fm>$tds$,2,n,1,<fm>$tds$,3,n,1,<fm>$tds$,4,n,1,<fm>$rel$,1,n,1,<fm>$rel$,2,n,1,<fm>$rel$,3,n,1,<fm>$rel$,4,n,1,<fm>,,,,<fm>,,,,<fm>,,,,<fm>"
+      DSD4 = ",n,1,1,<fm>>,n,2,1,D4-<fm>,n,2,2,D4-<fm>,n,2,4,MTS<fm>,n,2,6,<fm>,n,2,7,<fm>,n,2,8,<fm>,n,2,9,D4-<fm>,n,3,1,MD2<fm>,n,4,1,<fm>,n,4,7,<fm>,n,4,8,<fm>,n,4,15,<fm>,n,4,19,<fm>,n,5,1,<fm>,n,5,2,<fm>,n,12,11,<fm>,n,4,1,<fm>"
+      RETURN
+   END

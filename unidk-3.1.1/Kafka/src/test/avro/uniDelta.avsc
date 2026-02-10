@@ -1,0 +1,12 @@
+{"namespace": "com.unilibre.kafka",
+ "type": "record",
+ "name": "uniDelta",
+ "fields": [
+     {"name": "passport", "type": "string"},
+     {"name": "issuer", "type": "string"},
+     {"name": "account", "type": "string"},
+     {"name": "file", "type": "string"},
+     {"name": "item", "type": "string"},
+     {"name": "record", "type": "string"}
+ ]
+}

@@ -1,0 +1,11 @@
+SUBROUTINE TRIGTEST(TrigName, Schema, u2File, Event, B4Aftr, NewID, NewRec, OldID, OldRec, Assoc, Assoc.Event, Count, Chain.Cascade, Cascade)
+   *
+   OPENSEQ "uLOG", "uTriggers"  TO LOGIO THEN
+      SEEK LOGIO, 0,2 ELSE NULL
+      LOG.MSG = "TRIGTEST invoked on Event ":Event:" of File ":u2File:" on item ":NewID
+      WRITESEQ LOG.MSG TO LOGIO ELSE NULL
+      CLOSESEQ LOGIO
+   END
+   *
+   RETURN   ;* TO CALLING PROGRAM
+END

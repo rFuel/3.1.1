@@ -1,0 +1,34 @@
+      PROMPT ""
+*
+10:*
+      PRINT "File to load ": ; INPUT F
+      IF F = "" THEN STOP
+      OPEN F TO FILEIO ELSE
+         PRINT "   no such file"
+         PRINT ; PRINT
+         GO 10
+      END
+*
+20:*
+      PRINT "Item to load ": ; INPUT ID
+      IF ID = "" THEN PRINT ; PRINT ; PRINT ; GO 10
+*
+      PRINT "Paste the data here and finish with <<END>> ":
+      REC = ""
+      LOOP
+         INPUT L
+         L = EREPLACE(L, "|", @SM)
+         L = EREPLACE(L, "}", @VM)
+         IF INDEX(L, ":", 1) > 0 THEN
+            L = L[INDEX(L, ":", 1)+1, LEN(L)]
+            L = TRIMF(L)
+         END
+         IF L="<<END>>" THEN EXIT
+         REC<-1> = L
+      REPEAT
+      WRITE REC ON FILEIO, ID
+      PRINT ; PRINT
+      PRINT "Done."
+      CLOSE
+      STOP
+   END
