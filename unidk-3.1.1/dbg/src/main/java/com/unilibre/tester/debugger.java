@@ -11,7 +11,6 @@ import com.unilibre.cipher.uCipher;
 import com.unilibre.commons.*;
 import com.unilibre.core.MessageProtocol;
 import com.unilibre.core.OBMethods;
-import com.unilibre.rfsockets.u2Sockets;
 import com.unilibre.runcontrol.AutoTest;
 import org.json.JSONException;
 import org.json.JSONObject;
